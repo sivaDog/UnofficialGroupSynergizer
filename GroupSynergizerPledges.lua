@@ -58,6 +58,10 @@ local DungeonData={
 		{en="Graven Deep", ru="Могильная Пучина", de="Kentertiefen", fr="Profondeurs mortuaires", normal={id=610, ac=3394}, vet={id=611, ac=3395, hm=3396, tt=3397, nd=3398}},
 		{en="Bal Sunnar", ru="Бал-Суннар", de="Bal Sunnar", fr="Bal Sunnar", normal={id=613, ac=3468}, vet={id=614, ac=3469, hm=3470, tt=3471, nd=3472}},
 		{en="Scrivener's Hall", ru="Зал Книжников", de="Halle der Schriftmeister", fr="Salles du Scribe", normal={id=615, ac=3529}, vet={id=616, ac=3530, hm=3531, tt=3532, nd=3533}},
+		{en="Oathsworn Pit", ru="Oathsworn Pit", de="Grube der Eidgeschworenen", fr="Fosse aux fidèles", normal={id=638, ac=3810}, vet={id=639, ac=3811, hm=3812, tt=3813, nd=3814}},
+		{en="Bedlam Veil", ru="Bedlam Veil", de="Schleier des Aufruhrs", fr="Voile des fous", normal={id=640, ac=3851}, vet={id=641, ac=3852, hm=3853, tt=3854, nd=3855}},
+		{en="Exiled Redoubt", ru="Exiled Redoubt", de="Schanze der Abgeschiedenen", fr="Redoute de l'Exil", normal={id=855, ac=4109}, vet={id=856, ac=4110, hm=4111, tt=4112, nd=4113}},
+		{en="Lep Seclusa", ru="Lep Seclusa", de="Lep Seclusa", fr="Lep Seclusa", normal={id=857, ac=4128}, vet={id=858, ac=4129, hm=4130, tt=4131, nd=4132}},
 		shift=7
 	},
 }
