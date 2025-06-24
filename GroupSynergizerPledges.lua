@@ -182,7 +182,7 @@ function GROUP_SYNERGIZER.Pledges()
 									nd = v[dungeonMode].nd
 
 									if v[dungeonMode].id == id then
-										icons=(ac and IsAchievementComplete(ac)) and "|t16:16:/esoui/art/cadwell/check.dds|t" or ""
+										icons=GetCompletedQuestInfo(v.QID)~="" and "|t16:16:/esoui/art/cadwell/check.dds|t" or ""
 										icons=icons..((hm and IsAchievementComplete(hm)) and "|t20:20:/esoui/art/unitframes/target_veteranrank_icon.dds|t" or "")
 										icons=icons..((tt and IsAchievementComplete(tt)) and "|t20:20:/esoui/art/ava/overview_icon_underdog_score.dds|t" or "")
 										icons=icons..((nd and IsAchievementComplete(nd)) and "|t20:20:/esoui/art/treeicons/gamepad/gp_tutorial_idexicon_death.dds|t" or "")
