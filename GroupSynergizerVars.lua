@@ -44,10 +44,10 @@ GROUP_SYNERGIZER.Localization = {
 	language 		= string.lower(GetCVar("language.2")),
 
 	Translation={
-		en=SI_GROUP_SYNERGIZER_QUESTS,
-		fr=SI_GROUP_SYNERGIZER_QUESTS,
-		de=SI_GROUP_SYNERGIZER_QUESTS,
-		ru=SI_GROUP_SYNERGIZER_QUESTS,
+		en=GROUP_SYNERGIZER_PLEDGES,
+		fr=GROUP_SYNERGIZER_PLEDGES,
+		de=GROUP_SYNERGIZER_PLEDGES,
+		ru=GROUP_SYNERGIZER_PLEDGES,
 	},
 	Loc	=function(var) return GROUP_SYNERGIZER.Localization.Translation[GROUP_SYNERGIZER.Localization.language] and GROUP_SYNERGIZER.Localization.Translation[GROUP_SYNERGIZER.Localization.language][var] or GROUP_SYNERGIZER.Localization.Translation.en[var] or var end
 }
