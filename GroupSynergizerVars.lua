@@ -43,13 +43,8 @@ GROUP_SYNERGIZER.Localization = {
 
 	language 		= string.lower(GetCVar("language.2")),
 
-	Translation={
-		en=GROUP_SYNERGIZER_PLEDGES,
-		fr=GROUP_SYNERGIZER_PLEDGES,
-		de=GROUP_SYNERGIZER_PLEDGES,
-		ru=GROUP_SYNERGIZER_PLEDGES,
-	},
-	Loc	=function(var) return GROUP_SYNERGIZER.Localization.Translation[GROUP_SYNERGIZER.Localization.language] and GROUP_SYNERGIZER.Localization.Translation[GROUP_SYNERGIZER.Localization.language][var] or GROUP_SYNERGIZER.Localization.Translation.en[var] or var end
+	Translation=GROUP_SYNERGIZER_PLEDGES,
+	Loc	=function(var) return GROUP_SYNERGIZER.Localization.Translation[var] or var end
 }
 -- /script SetCVar("language.2", "en")
 -- /script d(GetCompletedQuestInfo(questID))
