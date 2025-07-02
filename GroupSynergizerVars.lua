@@ -43,61 +43,8 @@ GROUP_SYNERGIZER.Localization = {
 
 	language 		= string.lower(GetCVar("language.2")),
 
-	Translation={
-		en={
-			PledgeNPC	= {
-				"Maj al-Ragath",
-				"Glirion the Redbeard",
-				"Urgarlag Chief-bane",
-			},
-			PledgeDaily	= "Pledge",
-			PledgeQuest	= "Quest",
-			PledgeDone	= "Done",
-			PledgeSlash = "DAILY PLEDGES",
-			CheckQuests = "Check Active Quests",
-			AutoAccept	= "Auto-Accept Ready Check",
-		},
-		fr={
-			PledgeNPC	= {
-				"Maj al-Ragath",
-				"Glirion the Redbeard",
-				"Urgarlag Chief-bane",
-			},
-			PledgeDaily	= "Engagement",
-			PledgeQuest	= "Quête",
-			PledgeDone	= "Fait",
-			PledgeSlash = "ENGAGEMENTS QUOTIDIENS",
-			CheckQuests = "Vérifier les quêtes",
-			AutoAccept	= "Accepter Automatiquement",
-		},
-		de={ -- Thank you demawi for translation
-			PledgeNPC	= {
-				"Maj al-Ragath",
-				"Glirion der Rotbart",
-				"Urgarlag Häuptlingsfluch",
-			},	
-			PledgeDaily = "Gelöbnis",
-			PledgeQuest = "Quest",
-			PledgeDone 	= "Erledigt",
-			PledgeSlash = "TÄGLICHE GELÖBNISSE",
-			CheckQuests = "Quests überprüfen",
-			AutoAccept 	= "Automatisch Akzeptieren",
-		},
-		ru={
-			PledgeNPC	= {
-				"Мадж аль-Рагат",
-				"Глирион Рыжебородый",
-				"Ургарлаг Бич Вождей",
-			},			
-			PledgeDaily	= "сегодня",
-			PledgeQuest	= "Задание",
-			PledgeDone	= "Готово",
-			PledgeSlash = "ЕЖЕДНЕВНЫЕ ОБЯЗАТЕЛЬСТВА",
-			CheckQuests = "Проверить квесты",
-			AutoAccept	= "Авто-Принятие",
-		}
-	},
-	Loc	=function(var) return GROUP_SYNERGIZER.Localization.Translation[GROUP_SYNERGIZER.Localization.language] and GROUP_SYNERGIZER.Localization.Translation[GROUP_SYNERGIZER.Localization.language][var] or GROUP_SYNERGIZER.Localization.Translation.en[var] or var end
+	Translation=GROUP_SYNERGIZER_PLEDGES,
+	Loc	=function(var) return GROUP_SYNERGIZER.Localization.Translation[var] or var end
 }
 -- /script SetCVar("language.2", "en")
 -- /script d(GetCompletedQuestInfo(questID))
