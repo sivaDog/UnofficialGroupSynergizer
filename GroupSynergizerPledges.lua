@@ -67,242 +67,192 @@ local DungeonData={
 }
 
 function GROUP_SYNERGIZER.Pledges()
-	local Pledges=GROUP_SYNERGIZER.GetGoalPledges()
-	local haveQuest={},false
-	local day=math.floor(GetDiffBetweenTimeStamps(GetTimeStamp(),1517464800)/86400)
+	local Pledges = GROUP_SYNERGIZER.GetGoalPledges()
 
 	local function CheckPledges(c)
-		local parent=_G["ZO_DungeonFinder_KeyboardListSectionScrollChildContainer"..c]
-		if parent then
-			for i=1,parent:GetNumChildren() do
-				local obj=parent:GetChild(i)			
-				if obj and obj.check:GetState()==0 then
-					local raw=GROUP_SYNERGIZER.formatPledge(obj.node.data.rawName)
-
-					for k, v in pairs(Pledges) do
-						local match=GROUP_SYNERGIZER.formatPledge(Pledges[k].dungeon)
-						--df("%s == %s", match, raw)
-						if match == raw and not Pledges[k].complete then
-							obj.check:SetState(BSTATE_PRESSED, true)
-							ZO_ACTIVITY_FINDER_ROOT_MANAGER:ToggleLocationSelected(obj.node.data)
-							break;
-						end
-					end					
-				end
-			end
-			--StartGroupFinderSearch()
-		end
-	end
-
-	-- /script d(ZO_DungeonFinder_KeyboardListSectionScrollChildContainer2:GetChild(1).node.data)
-	-- https://wiki.esoui.com/Dungeon_Scroll_List_Data
-
-	local function MarkPledges()
-		if GROUP_SYNERGIZER.EnhanceGAF ~= true then return end
-
-		local isVeteran = GetUnitEffectiveChampionPoints('player') >= 160 and ZO_GetEffectiveDungeonDifficulty() == DUNGEON_DIFFICULTY_VETERAN and 3 or 2
-
-		for c=2,3 do
-			local parent=_G["ZO_DungeonFinder_KeyboardListSectionScrollChildContainer"..c]
-
-			if parent then
-				for i=1,parent:GetNumChildren() do
-					local obj=parent:GetChild(i)
-					if obj then					
-						local id=obj.node.data.id
-						local dungeonMode = obj.node.data.levelMin >= 50 and "vet" or "normal"
-						local orig=obj.text:GetText()
-						local rawName=obj.node.data.rawName
-
-						for npc=1,3 do
-							for k,v in pairs(DungeonData[npc]) do
-								if k ~= "shift" then
-									local ac, hm, tt, nd, icons
-									local completed=nil
-
-									ac = v[dungeonMode].ac
-									hm = v[dungeonMode].hm
-									tt = v[dungeonMode].tt
-									nd = v[dungeonMode].nd
-
-									if v[dungeonMode].id == id then
-										icons=GetCompletedQuestInfo(v.QID)~="" and "|t16:16:/esoui/art/cadwell/check.dds|t" or ""
-										icons=icons..((hm and IsAchievementComplete(hm)) and "|t20:20:/esoui/art/unitframes/target_veteranrank_icon.dds|t" or "")
-										icons=icons..((tt and IsAchievementComplete(tt)) and "|t20:20:/esoui/art/ava/overview_icon_underdog_score.dds|t" or "")
-										icons=icons..((nd and IsAchievementComplete(nd)) and "|t20:20:/esoui/art/treeicons/gamepad/gp_tutorial_idexicon_death.dds|t" or "")
-										local info=GROUP_SYNERGIZER.Label("GROUP_SYNERGIZER_DungeonInfo"..c..i, obj, {80,20}, {LEFT,LEFT,465,0}, "ZoFontGameLarge", nil, {0,1}, icons)
-										local daily = nil									
-										
-										for k, v in pairs(Pledges) do
-											if GROUP_SYNERGIZER.formatPledge(Pledges[k].dungeon) == GROUP_SYNERGIZER.formatPledge(rawName) then
-												--df("%s %s", Pledges[k].dungeon, (Pledges[k].daily and "daily" or ""))
-												completed=Pledges[k].complete
-												daily=Pledges[k].daily
-												break;
-											end
-										end										
-
-										if daily ~= nil then
-											if daily then
-												daily=" ["..GROUP_SYNERGIZER.Localization.Loc("PledgeDaily").."]"
-												obj.text:SetText(orig.." |cb7ff00"..daily.."|r")
-											else
-												daily = ""
-											end
-											if completed==false then
-												obj.text:SetText(orig.."|cb7ff00 "..daily.."|r |c00ffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeQuest").."]|r")
-											elseif completed==true then
-												obj.text:SetText(orig.."|cb7ff00 "..daily.."|r |cffffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeDone").."]|r")
-											end
-										end
-
-										obj.pledge=completed==false
-
-										break
-									end
-								end
-							end														
-						end
-					end
-				end
-			end
-
-			local parent=ZO_DungeonFinder_Keyboard
-			if parent then
-				local w=parent:GetWidth()
-				GROUP_SYNERGIZER.OnCooldownsUpdate(EVENT_ACTIVITY_FINDER_COOLDOWNS_UPDATE)
-				if isVeteran==c then
-					GROUP_SYNERGIZER.checkPledges.button=GROUP_SYNERGIZER_PledgesCheck or WINDOW_MANAGER:CreateControlFromVirtual("GROUP_SYNERGIZER_PledgesCheck", parent, "ZO_DefaultButton")
-					GROUP_SYNERGIZER.checkPledges.button:SetWidth(200, 28)
-					GROUP_SYNERGIZER.checkPledges.button:SetText(GROUP_SYNERGIZER.Localization.Loc("CheckQuests"))
-					GROUP_SYNERGIZER.checkPledges.button:SetClickSound("Click")
-					GROUP_SYNERGIZER.checkPledges.button:SetHandler("OnClicked", function()CheckPledges(c) end)
-					GROUP_SYNERGIZER.checkPledges.button:SetState(GROUP_SYNERGIZER.checkPledges.state)
-					GROUP_SYNERGIZER.checkPledges.button:SetHidden(GROUP_SYNERGIZER.coolDownStatus[LFG_COOLDOWN_ACTIVITY_STARTED])
-
-					if GROUP_SYNERGIZER.perfectPixelCompat then
-						--parent = ZO_SearchingForGroup
-						--GROUP_SYNERGIZER.checkPledges.button:SetAnchor(BOTTOM,parent,BOTTOM,0,-76)
-						GROUP_SYNERGIZER.checkPledges.button:SetAnchor(BOTTOM,parent,BOTTOM,200,0)
-						ZO_SearchingForGroupStatus:ClearAnchors()
-						ZO_SearchingForGroupStatus:SetAnchor(BOTTOM,parent,BOTTOM,0,-114)
-						ZO_SearchingForGroupStatus:SetDrawTier(2)
-					else
-						GROUP_SYNERGIZER.checkPledges.button:ClearAnchors()
-						GROUP_SYNERGIZER.checkPledges.button:SetAnchor(BOTTOM,parent,BOTTOM,200)
-						GROUP_SYNERGIZER.checkPledges.button:SetDrawTier(2)
-					end
-
-					if IsUnitGrouped('player') and not IsUnitGroupLeader('player') then GROUP_SYNERGIZER.checkPledges.button:SetState(BSTATE_DISABLED) end
-				end
-
-				if not GROUP_SYNERGIZER.perfectPixelCompat and ZO_DungeonFinder_KeyboardQueueButton then
-					ZO_DungeonFinder_KeyboardQueueButton:ClearAnchors()
-					ZO_DungeonFinder_KeyboardQueueButton:SetAnchor(BOTTOM,parent,BOTTOM,-w/5,0)
-					ZO_DungeonFinder_KeyboardQueueButton:SetDrawTier(2)
-				end
-
-				local header=_G["ZO_DungeonFinder_KeyboardListSectionScrollChildZO_ActivityFinderTemplateNavigationHeader_Keyboard"..c-1]
-				if header then
-					local state=header.text:GetColor()
-					if (isVeteran==c)~=(state==1) then header:OnMouseUp(true) end
-				end
-			end
-		end
-	end
-
-	ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection,'OnEffectivelyShown',function()
-		GROUP_SYNERGIZER.OnCooldownsUpdate(EVENT_ACTIVITY_FINDER_COOLDOWNS_UPDATE)	
-		Pledges,haveQuest=GROUP_SYNERGIZER.GetGoalPledges()
-		GROUP_SYNERGIZER.CallLater("MarkPledges", 250, MarkPledges)
-		GROUP_SYNERGIZER.showSpecificDung = true
-		---GROUP_SYNERGIZER.AutoAcceptCheckbox(not GROUP_SYNERGIZER.coolDownStatus[LFG_COOLDOWN_ACTIVITY_STARTED])
-	end)
-	
-	ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection,'OnEffectivelyHidden',function()
-		if GROUP_SYNERGIZER.perfectPixelCompat and not GROUP_SYNERGIZER.showSpecificDung then
-			ZO_SearchingForGroupStatus:ClearAnchors()
-			ZO_SearchingForGroupStatus:SetAnchor(BOTTOM,parent,BOTTOM,0,-76)
-			ZO_SearchingForGroupStatus:SetDrawTier(2)
-		end
-		if GROUP_SYNERGIZER_PledgesCheck ~= nil then GROUP_SYNERGIZER_PledgesCheck:SetHidden(true) end
-		GROUP_SYNERGIZER.showSpecificDung = false
-		---GROUP_SYNERGIZER.AutoAcceptCheckbox(false)
-	end)
-end
-
-function GROUP_SYNERGIZER.DailyPledges()
-	local Pledges=GROUP_SYNERGIZER.GetGoalPledges()
-	local day=math.floor(GetDiffBetweenTimeStamps(GetTimeStamp(),1517464800)/86400)
-	local npcname
-
-	df("|t16:16:ESOUI/art/icons/ability_weapon_001.dds|t |cffffff%s", GROUP_SYNERGIZER.Localization.Loc("PledgeSlash"))
-	for npc=1,3 do
-		local dp=DungeonData[npc]
-		local index=1+(day+dp.shift)%#dp
-		local pledge=GROUP_SYNERGIZER.Localization.Loc("Quests")[dp[index].QID]
-		local quest=""
-
-		if pledge then
-			local text=GROUP_SYNERGIZER.formatPledge(pledge)
-			for k, v in pairs(Pledges) do
-				local match=GROUP_SYNERGIZER.formatPledge(Pledges[k].dungeon)
-				if match == text then
-					if Pledges[k].complete then
-						quest="|cffffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeDone").."]|r"
-					else
-						quest="|c00ffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeQuest").."]|r"
-					end
-					break;
-				end
-			end
-		end
-
-		--[[
-		if npc == 1 then npcname 	 = "Maj al-Ragath"
-		elseif npc == 2 then npcname = "Glirion the Redbeard"
-		elseif npc == 3 then npcname = "Urgarlag Chief-bane"
-		end
-		]]
-
-		npcname = GROUP_SYNERGIZER.Localization.Loc("PledgeNPC")[npc]
-		if quest ~= "" then df("|cb5b5b5%i.|r |cb7ff00%s|r %s - |cb5b5b5%s|r", npc, pledge, quest, npcname)
-		else df("|cb5b5b5%i.|r |cb7ff00%s|r - |cb5b5b5%s|r", npc, pledge, npcname) end
-
-	end
-end
-
-function GROUP_SYNERGIZER.GetGoalPledges()
-	if GROUP_SYNERGIZER.EnhanceGAF ~= true then return end
-
-	local pledgeData={ dungeon, haveQuest, daily, complete }
-	local day=math.floor(GetDiffBetweenTimeStamps(GetTimeStamp(),1517464800)/86400)
-
-	for questIndex=1, MAX_JOURNAL_QUESTS do
-		local questName, _, _, stepType, stepTrackerText, isComplete, tracked, minLevel, _, questType, instanceDisplayType = GetJournalQuestInfo(questIndex)
-		local isDaily
-
-		if questName and questName~="" and questType==QUEST_TYPE_UNDAUNTED_PLEDGE and instanceDisplayType==INSTANCE_TYPE_GROUP then
-			--questName = questName:sub(9)
-			questName=string.format("%s",questName:gsub(".*:%s*",""):gsub(" "," "):gsub("%s+"," "):lower())
-
-			for npc=1,3 do
-				local dp=DungeonData[npc]
-				local index=1+(day+dp.shift)%#dp
-				local pledge=GROUP_SYNERGIZER.Localization.Loc("Quests")[dp[index].QID]
-				local quest=""
-				
-				if pledge then
-					isDaily = false
-					if questName == pledge then
-						isDaily = true
+		local parent = _G["ZO_DungeonFinder_KeyboardListSectionScrollChildContainer" .. c]
+		if not parent then return end
+		for i = 1, parent:GetNumChildren() do
+			local obj = parent:GetChild(i)
+			if obj and obj.check:GetState() == 0 then
+				local raw = GROUP_SYNERGIZER.formatPledge(obj.node.data.rawName)
+				for _, v in pairs(Pledges) do
+					if GROUP_SYNERGIZER.formatPledge(v.dungeon) == raw and not v.complete then
+						obj.check:SetState(BSTATE_PRESSED, true)
+						ZO_ACTIVITY_FINDER_ROOT_MANAGER:ToggleLocationSelected(obj.node.data)
 						break
 					end
 				end
 			end
+		end
+	end
 
-			--df("%s %s", questName, (isDaily and "[Pledge]" or "[Quest]"))
-			table.insert(pledgeData, { dungeon=string.format("%s", questName), haveQuest=stepType==QUEST_STEP_TYPE_AND, daily=isDaily, complete=stepType==QUEST_STEP_TYPE_OR } ) -- QUEST_STEP_TYPE_END = 3
+   	-- https://wiki.esoui.com/Dungeon_Scroll_List_Data
+	local function MarkPledges()
+		if not GROUP_SYNERGIZER.EnhanceGAF then return end
+		local isVet = (GetUnitEffectiveChampionPoints('player') >= 160 and ZO_GetEffectiveDungeonDifficulty() == DUNGEON_DIFFICULTY_VETERAN) and 3 or 2
+
+		for c = 2, 3 do
+			local parent = _G["ZO_DungeonFinder_KeyboardListSectionScrollChildContainer" .. c]
+			if parent then
+				for i = 1, parent:GetNumChildren() do
+					local obj = parent:GetChild(i)
+					if obj then
+						local id = obj.node.data.id
+						local mode = obj.node.data.levelMin >= 50 and "vet" or "normal"
+						local orig = obj.text:GetText()
+						local raw = obj.node.data.rawName
+						local found = false
+						for npc = 1, 3 do
+							for k, v in pairs(DungeonData[npc]) do
+								if k ~= "shift" and v[mode] and v[mode].id == id then
+									local icons = ""
+									if GetCompletedQuestInfo(v.QID) ~= "" then icons = icons .. "|t16:16:/esoui/art/cadwell/check.dds|t" end
+									if v[mode].hm and IsAchievementComplete(v[mode].hm) then icons = icons .. "|t20:20:/esoui/art/unitframes/target_veteranrank_icon.dds|t" end
+									if v[mode].tt and IsAchievementComplete(v[mode].tt) then icons = icons .. "|t20:20:/esoui/art/ava/overview_icon_underdog_score.dds|t" end
+									if v[mode].nd and IsAchievementComplete(v[mode].nd) then icons = icons .. "|t20:20:/esoui/art/treeicons/gamepad/gp_tutorial_idexicon_death.dds|t" end
+									GROUP_SYNERGIZER.Label("GROUP_SYNERGIZER_DungeonInfo" .. c .. i, obj, {80,20}, {LEFT,LEFT,465,0}, "ZoFontGameLarge", nil, {0,1}, icons)
+
+									local completed, daily
+									for _, pv in pairs(Pledges) do
+										if GROUP_SYNERGIZER.formatPledge(pv.dungeon) == GROUP_SYNERGIZER.formatPledge(raw) then
+											completed, daily = pv.complete, pv.daily
+											break
+										end
+									end
+
+									if daily ~= nil then
+										local dailyText = daily and (" ["..GROUP_SYNERGIZER.Localization.Loc("PledgeDaily").."]") or ""
+										if completed == false then
+											obj.text:SetText(orig.."|cb7ff00 "..dailyText.."|r |c00ffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeQuest").."]|r")
+										elseif completed == true then
+											obj.text:SetText(orig.."|cb7ff00 "..dailyText.."|r |cffffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeDone").."]|r")
+										elseif daily then
+											obj.text:SetText(orig.." |cb7ff00"..dailyText.."|r")
+										end
+									end
+									obj.pledge = completed == false
+									found = true
+									break
+								end
+							end
+							if found then break end
+						end
+					end
+				end
+			end
+
+			local parentKeyboard = ZO_DungeonFinder_Keyboard
+			if parentKeyboard then
+				GROUP_SYNERGIZER.OnCooldownsUpdate(EVENT_ACTIVITY_FINDER_COOLDOWNS_UPDATE)
+				if isVet == c then
+					local btn = GROUP_SYNERGIZER_PledgesCheck or WINDOW_MANAGER:CreateControlFromVirtual("GROUP_SYNERGIZER_PledgesCheck", parentKeyboard, "ZO_DefaultButton")
+					GROUP_SYNERGIZER.checkPledges.button = btn
+					btn:SetWidth(200, 28)
+					btn:SetText(GROUP_SYNERGIZER.Localization.Loc("CheckQuests"))
+					btn:SetClickSound("Click")
+					btn:SetHandler("OnClicked", function() CheckPledges(c) end)
+					btn:SetState(GROUP_SYNERGIZER.checkPledges.state)
+					btn:SetHidden(GROUP_SYNERGIZER.coolDownStatus[LFG_COOLDOWN_ACTIVITY_STARTED])
+					if GROUP_SYNERGIZER.perfectPixelCompat then
+						btn:SetAnchor(BOTTOM, parentKeyboard, BOTTOM, 200, 0)
+						ZO_SearchingForGroupStatus:ClearAnchors()
+						ZO_SearchingForGroupStatus:SetAnchor(BOTTOM, parentKeyboard, BOTTOM, 0, -114)
+						ZO_SearchingForGroupStatus:SetDrawTier(2)
+					else
+						btn:ClearAnchors()
+						btn:SetAnchor(BOTTOM, parentKeyboard, BOTTOM, 200)
+						btn:SetDrawTier(2)
+					end
+					if IsUnitGrouped('player') and not IsUnitGroupLeader('player') then
+						btn:SetState(BSTATE_DISABLED)
+					end
+				end
+				if not GROUP_SYNERGIZER.perfectPixelCompat and ZO_DungeonFinder_KeyboardQueueButton then
+					ZO_DungeonFinder_KeyboardQueueButton:ClearAnchors()
+					ZO_DungeonFinder_KeyboardQueueButton:SetAnchor(BOTTOM, parentKeyboard, BOTTOM, -parentKeyboard:GetWidth()/5, 0)
+					ZO_DungeonFinder_KeyboardQueueButton:SetDrawTier(2)
+				end
+				local header = _G["ZO_DungeonFinder_KeyboardListSectionScrollChildZO_ActivityFinderTemplateNavigationHeader_Keyboard" .. c - 1]
+				if header and ((isVet == c) ~= (header.text:GetColor() == 1)) then
+					header:OnMouseUp(true)
+				end
+			end
+		end
+	end
+
+	ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, 'OnEffectivelyShown', function()
+		GROUP_SYNERGIZER.OnCooldownsUpdate(EVENT_ACTIVITY_FINDER_COOLDOWNS_UPDATE)
+		Pledges = GROUP_SYNERGIZER.GetGoalPledges()
+		GROUP_SYNERGIZER.CallLater("MarkPledges", 250, MarkPledges)
+		GROUP_SYNERGIZER.showSpecificDung = true
+	end)
+
+	ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, 'OnEffectivelyHidden', function()
+		if GROUP_SYNERGIZER.perfectPixelCompat and not GROUP_SYNERGIZER.showSpecificDung then
+			ZO_SearchingForGroupStatus:ClearAnchors()
+			ZO_SearchingForGroupStatus:SetAnchor(BOTTOM, parent, BOTTOM, 0, -76)
+			ZO_SearchingForGroupStatus:SetDrawTier(2)
+		end
+		if GROUP_SYNERGIZER_PledgesCheck then GROUP_SYNERGIZER_PledgesCheck:SetHidden(true) end
+		GROUP_SYNERGIZER.showSpecificDung = false
+	end)
+end
+
+function GROUP_SYNERGIZER.DailyPledges()
+	local Pledges = GROUP_SYNERGIZER.GetGoalPledges()
+	local day = math.floor((GetTimeStamp() - 1517464800) / 86400)
+	df("|t16:16:ESOUI/art/icons/ability_weapon_001.dds|t |cffffff%s", GROUP_SYNERGIZER.Localization.Loc("PledgeSlash"))
+	for npc = 1, 3 do
+		local dp = DungeonData[npc]
+		local index = 1 + (day + dp.shift) % #dp
+		local pledge = GROUP_SYNERGIZER.Localization.Loc("Quests")[dp[index].QID]
+		local quest = ""
+		if pledge then
+			local text = GROUP_SYNERGIZER.formatPledge(pledge)
+			for _, v in pairs(Pledges) do
+				if GROUP_SYNERGIZER.formatPledge(v.dungeon) == text then
+					quest = v.complete and "|cffffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeDone").."]|r"
+						or "|c00ffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeQuest").."]|r"
+					break
+				end
+			end
+		end
+		local npcname = GROUP_SYNERGIZER.Localization.Loc("PledgeNPC")[npc]
+		if quest ~= "" then
+			df("|cb5b5b5%i.|r |cb7ff00%s|r %s - |cb5b5b5%s|r", npc, pledge, quest, npcname)
+		else
+			df("|cb5b5b5%i.|r |cb7ff00%s|r - |cb5b5b5%s|r", npc, pledge, npcname)
+		end
+	end
+end
+
+function GROUP_SYNERGIZER.GetGoalPledges()
+	if not GROUP_SYNERGIZER.EnhanceGAF then return end
+
+	local pledgeData = {}
+	local day = math.floor((GetTimeStamp() - 1517464800) / 86400)
+
+	for i = 1, MAX_JOURNAL_QUESTS do
+		local questName, _, _, stepType, _, _, _, _, _, questType, instanceDisplayType = GetJournalQuestInfo(i)
+		if questName and questName ~= "" and questType == QUEST_TYPE_UNDAUNTED_PLEDGE and instanceDisplayType == INSTANCE_TYPE_GROUP then
+			questName = questName:gsub(".*:%s*", ""):gsub(" ", " "):gsub("%s+", " "):lower()
+			local isDaily = false
+			for npc = 1, 3 do
+				local dp = DungeonData[npc]
+				local index = 1 + (day + dp.shift) % #dp
+				local pledge = GROUP_SYNERGIZER.Localization.Loc("Quests")[dp[index].QID]
+				if pledge and questName == pledge then
+					isDaily = true
+					break
+				end
+			end
+			table.insert(pledgeData, {
+				dungeon = questName,
+				haveQuest = stepType == QUEST_STEP_TYPE_AND,
+				daily = isDaily,
+				complete = stepType == QUEST_STEP_TYPE_OR
+			})
 		end
 	end
 
@@ -310,14 +260,11 @@ function GROUP_SYNERGIZER.GetGoalPledges()
 end
 
 function GROUP_SYNERGIZER.formatPledge(s)
-	local v=s:lower():gsub("the ",""):gsub(" "," "):gsub("der ",""):gsub("die ",""):gsub("das ","")
-
-	if GROUP_SYNERGIZER.Localization.language~="ru" and GROUP_SYNERGIZER.Localization.language~="fr" and GROUP_SYNERGIZER.Localization.language~="de" then
-		local number=string.match(v,"%sii$")
-		v=string.match(v,"[^%s]+")..(number or "")
+	local v = s:lower():gsub("the ",""):gsub(" "," "):gsub("der ",""):gsub("die ",""):gsub("das ","")
+	if GROUP_SYNERGIZER.Localization.language == "en" then
+		v = v:match("^[^%s]+") or v
 	elseif RuESO_init then
-		v=string.match(v,"[^(]+"):gsub("%s$","")
+		v = v:match("^[^(]+") or v
 	end
-
-	return v
+	return v:gsub("%s+$", "")
 end
