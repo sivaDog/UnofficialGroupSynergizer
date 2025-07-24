@@ -1,47 +1,47 @@
 local function OnAddOnLoaded(event, addonName)
-	if addonName ~= GROUP_SYNERGIZER.name then return end
+    if addonName ~= GROUP_SYNERGIZER.name then return end
 
-	-- Saved Variables
-	GROUP_SYNERGIZER.savedVariables = ZO_SavedVars:NewAccountWide("GroupSynergizerSavedVars", GROUP_SYNERGIZER.variableVersion, nil, GROUP_SYNERGIZER.defaults, GetWorldName()) --ZO_SavedVars:New("GroupSynergizerSavedVars", 1, nil, GROUP_SYNERGIZER.defaults)
-	GROUP_SYNERGIZER.Enable         = GROUP_SYNERGIZER.savedVariables.Enable
-	GROUP_SYNERGIZER.SoundNotify    = GROUP_SYNERGIZER.savedVariables.SoundNotify
-	GROUP_SYNERGIZER.ScreenNotify   = GROUP_SYNERGIZER.savedVariables.ScreenNotify
-	GROUP_SYNERGIZER.AutoRelease    = GROUP_SYNERGIZER.savedVariables.AutoRelease
-	GROUP_SYNERGIZER.AutoAccept     = GROUP_SYNERGIZER.savedVariables.AutoAccept
-	GROUP_SYNERGIZER.NotifyDelay    = GROUP_SYNERGIZER.savedVariables.NotifyDelay
-	GROUP_SYNERGIZER.EnhanceGAF     = GROUP_SYNERGIZER.savedVariables.EnhanceGAF
-	GROUP_SYNERGIZER.SlashCommands  = GROUP_SYNERGIZER.savedVariables.SlashCommands
-	GROUP_SYNERGIZER.firstRun       = GROUP_SYNERGIZER.savedVariables.firstRun
+    -- Saved Variables
+    GROUP_SYNERGIZER.savedVariables = ZO_SavedVars:NewAccountWide("GroupSynergizerSavedVars", GROUP_SYNERGIZER.variableVersion, nil, GROUP_SYNERGIZER.defaults, GetWorldName()) --ZO_SavedVars:New("GroupSynergizerSavedVars", 1, nil, GROUP_SYNERGIZER.defaults)
+    GROUP_SYNERGIZER.Enable         = GROUP_SYNERGIZER.savedVariables.Enable
+    GROUP_SYNERGIZER.SoundNotify    = GROUP_SYNERGIZER.savedVariables.SoundNotify
+    GROUP_SYNERGIZER.ScreenNotify   = GROUP_SYNERGIZER.savedVariables.ScreenNotify
+    GROUP_SYNERGIZER.AutoRelease    = GROUP_SYNERGIZER.savedVariables.AutoRelease
+    GROUP_SYNERGIZER.AutoAccept     = GROUP_SYNERGIZER.savedVariables.AutoAccept
+    GROUP_SYNERGIZER.NotifyDelay    = GROUP_SYNERGIZER.savedVariables.NotifyDelay
+    GROUP_SYNERGIZER.EnhanceGAF     = GROUP_SYNERGIZER.savedVariables.EnhanceGAF
+    GROUP_SYNERGIZER.SlashCommands  = GROUP_SYNERGIZER.savedVariables.SlashCommands
+    GROUP_SYNERGIZER.firstRun       = GROUP_SYNERGIZER.savedVariables.firstRun
 
-	-- Slash Commands
-	if GROUP_SYNERGIZER.SlashCommands then
-		SLASH_COMMANDS["/pledges"] = GROUP_SYNERGIZER.DailyPledges
-		SLASH_COMMANDS["/pledge"]  = GROUP_SYNERGIZER.DailyPledges
-		SLASH_COMMANDS["/pl"]      = GROUP_SYNERGIZER.DailyPledges
-		SLASH_COMMANDS["/leave"]   = GROUP_SYNERGIZER.leaveGroup
-		SLASH_COMMANDS["/lv"]      = GROUP_SYNERGIZER.leaveGroup
-	end
+    -- Slash Commands
+    if GROUP_SYNERGIZER.SlashCommands then
+        SLASH_COMMANDS["/pledges"] = GROUP_SYNERGIZER.DailyPledges
+        SLASH_COMMANDS["/pledge"]  = GROUP_SYNERGIZER.DailyPledges
+        SLASH_COMMANDS["/pl"]      = GROUP_SYNERGIZER.DailyPledges
+        SLASH_COMMANDS["/leave"]   = GROUP_SYNERGIZER.leaveGroup
+        SLASH_COMMANDS["/lv"]      = GROUP_SYNERGIZER.leaveGroup
+    end
 
-	-- Settings
-	GROUP_SYNERGIZER.CreateSettingsWindow()
+    -- Settings
+    GROUP_SYNERGIZER.CreateSettingsWindow()
 
-	-- Pledges
-	GROUP_SYNERGIZER.Pledges()
+    -- Pledges
+    GROUP_SYNERGIZER.Pledges()
 
-	-- Battlegrounds
-	GROUP_SYNERGIZER.Battlegrounds()
+    -- Battlegrounds
+    GROUP_SYNERGIZER.Battlegrounds()
 
-	-- Unregister Addon Load
-	GROUP_SYNERGIZER.eventManager:UnregisterForEvent(GROUP_SYNERGIZER.name, EVENT_ADD_ON_LOADED)
+    -- Unregister Addon Load
+    GROUP_SYNERGIZER.eventManager:UnregisterForEvent(GROUP_SYNERGIZER.name, EVENT_ADD_ON_LOADED)
 end
 
 EVENT_MANAGER:RegisterForEvent(GROUP_SYNERGIZER.name.."_OnPlayerActivated", EVENT_PLAYER_ACTIVATED, function()
-	if not GROUP_SYNERGIZER.firstRun then
-		GROUP_SYNERGIZER.firstRun = true
-		GROUP_SYNERGIZER.savedVariables.firstRun = true
-		DoCommand("/gs")
-	end
-	EVENT_MANAGER:UnregisterForEvent(GROUP_SYNERGIZER.name.."_OnPlayerActivated", EVENT_PLAYER_ACTIVATED)
+    if not GROUP_SYNERGIZER.firstRun then
+        GROUP_SYNERGIZER.firstRun = true
+        GROUP_SYNERGIZER.savedVariables.firstRun = true
+        DoCommand("/gs")
+    end
+    EVENT_MANAGER:UnregisterForEvent(GROUP_SYNERGIZER.name.."_OnPlayerActivated", EVENT_PLAYER_ACTIVATED)
 end)
 
 -------------------------
