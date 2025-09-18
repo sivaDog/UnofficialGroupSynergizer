@@ -106,5 +106,7 @@ GROUP_SYNERGIZER_PLEDGES = {
         [7155] = "Bedlam Veil",
         [7235] = "Exiled Redoubt",
         [7237] = "Lep Seclusa",
+        [7320] = "Naj-Caldeesh",
+        [7323] = "Black Gem Foundry",
     },
 }

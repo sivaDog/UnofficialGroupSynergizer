@@ -62,6 +62,8 @@ local DungeonData={
         {QID = 7155, normal={id=640, ac=3851}, vet={id=641, ac=3852, hm=3853, tt=3854, nd=3855}},-- "Bedlam Veil"
         {QID = 7235, normal={id=855, ac=4109}, vet={id=856, ac=4110, hm=4111, tt=4112, nd=4113}},-- "Exiled Redoubt"
         {QID = 7237, normal={id=857, ac=4128}, vet={id=858, ac=4129, hm=4130, tt=4131, nd=4132}},-- "Lep Seclusa"
+        {QID = 7320, normal={id=1037, ac=4311}, vet={id=1038, ac=4312, hm=4313, tt=4314, nd=4315}},-- "Naj-Caldeesh"
+        {QID = 7323, normal={id=1039, ac=4334}, vet={id=1040, ac=4335, hm=4336, tt=4337, nd=4338}},-- "Black Gem Foundry"
         shift=7
     },
 }
