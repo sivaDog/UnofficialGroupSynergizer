@@ -77,9 +77,9 @@ function GROUP_SYNERGIZER.Pledges()
         for i = 1, parent:GetNumChildren() do
             local obj = parent:GetChild(i)
             if obj and obj.check:GetState() == 0 then
-                local raw = GROUP_SYNERGIZER.formatPledge(obj.node.data.rawName)
+                local raw = obj.node.data.rawName
                 for _, v in pairs(Pledges) do
-                    if GROUP_SYNERGIZER.formatPledge(v.dungeon) == raw and not v.complete then
+                    if v.dungeon == raw and not v.complete then
                         obj.check:SetState(BSTATE_PRESSED, true)
                         ZO_ACTIVITY_FINDER_ROOT_MANAGER:ToggleLocationSelected(obj.node.data)
                         break
@@ -117,7 +117,7 @@ function GROUP_SYNERGIZER.Pledges()
 
                                     local completed, daily
                                     for _, pv in pairs(Pledges) do
-                                        if GROUP_SYNERGIZER.formatPledge(pv.dungeon) == GROUP_SYNERGIZER.formatPledge(raw) then
+                                        if pv.dungeon == GetQuestName(v.pledge) then
                                             completed, daily = pv.complete, pv.daily
                                             break
                                         end
@@ -211,13 +211,12 @@ function GROUP_SYNERGIZER.DailyPledges()
     df("|t16:16:ESOUI/art/icons/ability_weapon_001.dds|t |cffffff%s", GROUP_SYNERGIZER.Localization.Loc("PledgeSlash"))
     for npc = 1, 3 do
         local dp = DungeonData[npc]
-        local pledge = GROUP_SYNERGIZER.Localization.Loc("Quests")[dp[index].QID]
         local index = 2 + (day + dp.shift) % #dp
+        local pledge = GetQuestName(dp[index].pledge)
         local quest = ""
         if pledge then
-            local text = GROUP_SYNERGIZER.formatPledge(pledge)
             for _, v in pairs(Pledges) do
-                if GROUP_SYNERGIZER.formatPledge(v.dungeon) == text then
+                if v.dungeon == pledge then
                     quest = v.complete and "|cffffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeDone").."]|r"
                         or "|c00ffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeQuest").."]|r"
                     break
@@ -242,12 +241,11 @@ function GROUP_SYNERGIZER.GetGoalPledges()
     for i = 1, MAX_JOURNAL_QUESTS do
         local questName, _, _, stepType, _, _, _, _, _, questType, instanceDisplayType = GetJournalQuestInfo(i)
         if questName and questName ~= "" and questType == QUEST_TYPE_UNDAUNTED_PLEDGE and instanceDisplayType == INSTANCE_TYPE_GROUP then
-            questName = questName:gsub(".*:%s*", ""):gsub(" ", " "):gsub("%s+", " "):lower()
             local isDaily = false
             for npc = 1, 3 do
                 local dp = DungeonData[npc]
-                local pledge = GROUP_SYNERGIZER.Localization.Loc("Quests")[dp[index].QID]
                 local index = 2 + (day + dp.shift) % #dp
+                local pledge = GetQuestName(dp[index].pledge)
                 if pledge and questName == pledge then
                     isDaily = true
                     break
@@ -263,14 +261,4 @@ function GROUP_SYNERGIZER.GetGoalPledges()
     end
 
     return pledgeData
-end
-
-function GROUP_SYNERGIZER.formatPledge(s)
-    local v = s:lower():gsub("the ",""):gsub(" "," "):gsub("der ",""):gsub("die ",""):gsub("das ","")
-    if GROUP_SYNERGIZER.Localization.language == "en" then
-        v = v:match("^[^%s]+") or v
-    elseif RuESO_init then
-        v = v:match("^[^(]+") or v
-    end
-    return v:gsub("%s+$", "")
 end
