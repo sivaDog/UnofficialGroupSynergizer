@@ -77,12 +77,19 @@ function GROUP_SYNERGIZER.Pledges()
         for i = 1, parent:GetNumChildren() do
             local obj = parent:GetChild(i)
             if obj and obj.check:GetState() == 0 then
-                local raw = obj.node.data.rawName
-                for _, v in pairs(Pledges) do
-                    if v.dungeon == raw and not v.complete then
-                        obj.check:SetState(BSTATE_PRESSED, true)
-                        ZO_ACTIVITY_FINDER_ROOT_MANAGER:ToggleLocationSelected(obj.node.data)
-                        break
+                local id = obj.node.data.id
+                local mode = obj.node.data.levelMin >= 50 and "vet" or "normal"
+                for npc = 1, 3 do
+                    for k, dungeon in pairs(DungeonData[npc]) do
+                        if k ~= "shift" and dungeon[mode] and dungeon[mode].id == id then
+                            for _, v in pairs(Pledges) do
+                                if v.dungeon == GetQuestName(dungeon.pledge) and not v.complete then
+                                    obj.check:SetState(BSTATE_PRESSED, true)
+                                    ZO_ACTIVITY_FINDER_ROOT_MANAGER:ToggleLocationSelected(obj.node.data)
+                                    break
+                                end
+                            end
+                        end
                     end
                 end
             end
@@ -103,7 +110,6 @@ function GROUP_SYNERGIZER.Pledges()
                         local id = obj.node.data.id
                         local mode = obj.node.data.levelMin >= 50 and "vet" or "normal"
                         local orig = obj.text:GetText()
-                        local raw = obj.node.data.rawName
                         local found = false
                         for npc = 1, 3 do
                             for k, v in pairs(DungeonData[npc]) do
