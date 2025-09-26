@@ -12,7 +12,7 @@ local DungeonData={
         {QID = 4641, pledge=5275, normal={id=308, ac=1587}, vet={id=21, ac=464, hm=467, tt=465, nd=1588}},-- "Darkshade Caverns II"
         {QID = 4336, pledge=5276, normal={id=7, ac=11}, vet={id=23, ac=1573, hm=1578, tt=1576, nd=1577}},-- "Elden Hollow I"
         {QID = 4813, pledge=5282, normal={id=22, ac=1595}, vet={id=307, ac=678, hm=681, tt=679, nd=1596}},-- "Wayrest Sewers II"
-        shift=0
+        shift=1
     },
     [2]={--Glirion the Redbeard
         {QID = 4733, pledge=5307, normal={id=16, ac=417}, vet={id=313, ac=1635, hm=1640, tt=1638, nd=1639}},-- "Selene's Web"
@@ -27,7 +27,7 @@ local DungeonData={
         {QID = 4538, pledge=5301, normal={id=13, ac=81}, vet={id=311, ac=1617, hm=1622, tt=1620, nd=1621}},-- "Tempest Island"
         {QID = 4589, pledge=5305, normal={id=15, ac=410}, vet={id=321, ac=1647, hm=1652, tt=1650, nd=1651}},-- "Blackheart Haven"
         {QID = 4202, pledge=5288, normal={id=8, ac=272}, vet={id=305, ac=1604, hm=1609, tt=1607, nd=1608}},-- "Arx Corinium"
-        shift=0
+        shift=1
     },
     [3]={--Urgarlag Chief-bane (DLC)
         {QID = 5136, pledge=5382, normal={id=289, ac=1345}, vet={id=268, ac=880, hm=1303, tt=1128, nd=1129}},-- "Imperial City Prison"
@@ -64,7 +64,7 @@ local DungeonData={
         {QID = 7237, pledge=7238, normal={id=857, ac=4128}, vet={id=858, ac=4129, hm=4130, tt=4131, nd=4132}},-- "Lep Seclusa"
         {QID = 7320, pledge=7321, normal={id=1037, ac=4311}, vet={id=1038, ac=4312, hm=4313, tt=4314, nd=4315}},-- "Naj-Caldeesh"
         {QID = 7323, pledge=7324, normal={id=1039, ac=4334}, vet={id=1040, ac=4335, hm=4336, tt=4337, nd=4338}},-- "Black Gem Foundry"
-        shift=0
+        shift=1
     },
 }
 
@@ -217,7 +217,7 @@ function GROUP_SYNERGIZER.DailyPledges()
     df("|t16:16:ESOUI/art/icons/ability_weapon_001.dds|t |cffffff%s", GROUP_SYNERGIZER.Localization.Loc("PledgeSlash"))
     for npc = 1, 3 do
         local dp = DungeonData[npc]
-        local index = 2 + (day + dp.shift) % #dp
+        local index = 1 + (day + dp.shift) % #dp
         local pledge = GetQuestName(dp[index].pledge)
         local quest = ""
         if pledge then
@@ -250,7 +250,7 @@ function GROUP_SYNERGIZER.GetGoalPledges()
             local isDaily = false
             for npc = 1, 3 do
                 local dp = DungeonData[npc]
-                local index = 2 + (day + dp.shift) % #dp
+                local index = 1 + (day + dp.shift) % #dp
                 local pledge = GetQuestName(dp[index].pledge)
                 if pledge and questName == pledge then
                     isDaily = true
