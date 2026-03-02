@@ -1,6 +1,6 @@
 GROUP_SYNERGIZER 					= {}
 GROUP_SYNERGIZER.name 				= "GroupSynergizer"
-GROUP_SYNERGIZER.version 			= "4.1"
+GROUP_SYNERGIZER.version 			= "unofficial-5.0"
 GROUP_SYNERGIZER.variableVersion	= 2
 GROUP_SYNERGIZER.savedVariables		= nil
 GROUP_SYNERGIZER.eventManager 		= GetEventManager()

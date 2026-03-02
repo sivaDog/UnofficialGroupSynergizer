@@ -9,7 +9,7 @@
 ; https://www.esoui.com/downloads/info1643-BanditsUserInterface.html
 
 ## Title: |cb7ff00Scorps|r Group Synergizer
-## Version: 4.1
+## Version: unofficial-5.0
 ## Author: |cb7ff00Scorp|r
 ## DependsOn: LibAddonMenu-2.0>=34
 ## APIVersion: 101038 101039

@@ -15,13 +15,6 @@ function GROUP_SYNERGIZER.CreateSettingsWindow()
     LAM:RegisterAddonPanel("GROUP_SYNERGIZER_Settings", panelData)
 
     local optionsData = {
-        {
-            type = "texture",
-            image = "GroupSynergizer\\textures\\GroupSynergizerLogo.dds",
-            imageWidth = 510,
-            imageHeight = 100,
-            width = "full",
-        },
         { type = "divider", height = 15, alpha = 1.0, width = "full" },
         {
             type = "checkbox",
