@@ -12,7 +12,6 @@ local DungeonData={
         {QID = 4641, pledge=5275, normal={id=308, ac=1587}, vet={id=21, ac=464, hm=467, tt=465, nd=1588}},-- "Darkshade Caverns II"
         {QID = 4336, pledge=5276, normal={id=7, ac=11}, vet={id=23, ac=1573, hm=1578, tt=1576, nd=1577}},-- "Elden Hollow I"
         {QID = 4813, pledge=5282, normal={id=22, ac=1595}, vet={id=307, ac=678, hm=681, tt=679, nd=1596}},-- "Wayrest Sewers II"
-        shift=1
     },
     [2]={--Glirion the Redbeard
         {QID = 4733, pledge=5307, normal={id=16, ac=417}, vet={id=313, ac=1635, hm=1640, tt=1638, nd=1639}},-- "Selene's Web"
@@ -27,7 +26,6 @@ local DungeonData={
         {QID = 4538, pledge=5301, normal={id=13, ac=81}, vet={id=311, ac=1617, hm=1622, tt=1620, nd=1621}},-- "Tempest Island"
         {QID = 4589, pledge=5305, normal={id=15, ac=410}, vet={id=321, ac=1647, hm=1652, tt=1650, nd=1651}},-- "Blackheart Haven"
         {QID = 4202, pledge=5288, normal={id=8, ac=272}, vet={id=305, ac=1604, hm=1609, tt=1607, nd=1608}},-- "Arx Corinium"
-        shift=1
     },
     [3]={--Urgarlag Chief-bane (DLC)
         {QID = 5136, pledge=5382, normal={id=289, ac=1345}, vet={id=268, ac=880, hm=1303, tt=1128, nd=1129}},-- "Imperial City Prison"
@@ -64,12 +62,42 @@ local DungeonData={
         {QID = 7237, pledge=7238, normal={id=857, ac=4128}, vet={id=858, ac=4129, hm=4130, tt=4131, nd=4132}},-- "Lep Seclusa"
         {QID = 7320, pledge=7321, normal={id=1037, ac=4311}, vet={id=1038, ac=4312, hm=4313, tt=4314, nd=4315}},-- "Naj-Caldeesh"
         {QID = 7323, pledge=7324, normal={id=1039, ac=4334}, vet={id=1040, ac=4335, hm=4336, tt=4337, nd=4338}},-- "Black Gem Foundry"
-        shift=1
     },
 }
 
+local function FindDungeonByActivityId(activityId, mode)
+    if not activityId or not mode then return nil end
+    for npc = 1, 3 do
+        for _, dungeon in ipairs(DungeonData[npc]) do
+            local info = dungeon[mode]
+            if info and info.id == activityId then
+                return dungeon
+            end
+        end
+    end
+end
+
+local function GetTodayDailyPledgeNames()
+    local lupPledges = LibUndauntedPledges.GetPledges()
+    if type(lupPledges) ~= "table" then return {} end
+
+    local namesByQuestName = {}
+    local pledgeGivers = { LibUndauntedPledges.BASE1, LibUndauntedPledges.BASE2, LibUndauntedPledges.DLC1 }
+    for _, giverId in ipairs(pledgeGivers) do
+        local info = lupPledges[giverId]
+        if info and info.questId and info.questId > 0 then
+            local questName = GetQuestName(info.questId)
+            if questName and questName ~= "" then
+                namesByQuestName[questName] = true
+            end
+        end
+    end
+
+    return namesByQuestName
+end
+
 function GROUP_SYNERGIZER.Pledges()
-    local Pledges = GROUP_SYNERGIZER.GetGoalPledges()
+    local pledges = GROUP_SYNERGIZER.GetGoalPledges()
 
     local function CheckPledges(c)
         local parent = _G["ZO_DungeonFinder_KeyboardListSectionScrollChildContainer" .. c]
@@ -79,16 +107,14 @@ function GROUP_SYNERGIZER.Pledges()
             if obj and obj.check:GetState() == 0 then
                 local id = obj.node.data.id
                 local mode = obj.node.data.levelMin >= 50 and "vet" or "normal"
-                for npc = 1, 3 do
-                    for k, dungeon in pairs(DungeonData[npc]) do
-                        if k ~= "shift" and dungeon[mode] and dungeon[mode].id == id then
-                            for _, v in pairs(Pledges) do
-                                if v.dungeon == GetQuestName(dungeon.pledge) and not v.complete then
-                                    obj.check:SetState(BSTATE_PRESSED, true)
-                                    ZO_ACTIVITY_FINDER_ROOT_MANAGER:ToggleLocationSelected(obj.node.data)
-                                    break
-                                end
-                            end
+                local dungeon = FindDungeonByActivityId(id, mode)
+                if dungeon then
+                    local pledgeName = GetQuestName(dungeon.pledge)
+                    for _, v in pairs(pledges) do
+                        if v.dungeon == pledgeName and not v.complete then
+                            obj.check:SetState(BSTATE_PRESSED, true)
+                            ZO_ACTIVITY_FINDER_ROOT_MANAGER:ToggleLocationSelected(obj.node.data)
+                            break
                         end
                     end
                 end
@@ -110,41 +136,44 @@ function GROUP_SYNERGIZER.Pledges()
                         local id = obj.node.data.id
                         local mode = obj.node.data.levelMin >= 50 and "vet" or "normal"
                         local orig = obj.text:GetText()
-                        local found = false
-                        for npc = 1, 3 do
-                            for k, v in pairs(DungeonData[npc]) do
-                                if k ~= "shift" and v[mode] and v[mode].id == id then
-                                    local icons = ""
-                                    if GetCompletedQuestInfo(v.QID) ~= "" then icons = icons .. "|t16:16:/esoui/art/cadwell/check.dds|t" end
-                                    if v[mode].hm and IsAchievementComplete(v[mode].hm) then icons = icons .. "|t20:20:/esoui/art/unitframes/target_veteranrank_icon.dds|t" end
-                                    if v[mode].tt and IsAchievementComplete(v[mode].tt) then icons = icons .. "|t20:20:/esoui/art/ava/overview_icon_underdog_score.dds|t" end
-                                    if v[mode].nd and IsAchievementComplete(v[mode].nd) then icons = icons .. "|t20:20:/esoui/art/treeicons/gamepad/gp_tutorial_idexicon_death.dds|t" end
-                                    GROUP_SYNERGIZER.Label("GROUP_SYNERGIZER_DungeonInfo" .. c .. i, obj, {80,20}, {LEFT,LEFT,465,0}, "ZoFontGameLarge", nil, {0,1}, icons)
+                        local dungeon = FindDungeonByActivityId(id, mode)
+                        if dungeon then
+                            local icons = ""
+                            local modeData = dungeon[mode]
+                            if GetCompletedQuestInfo(dungeon.QID) ~= "" then
+                                icons = icons .. "|t16:16:/esoui/art/cadwell/check.dds|t"
+                            end
+                            if modeData.hm and IsAchievementComplete(modeData.hm) then
+                                icons = icons .. "|t20:20:/esoui/art/unitframes/target_veteranrank_icon.dds|t"
+                            end
+                            if modeData.tt and IsAchievementComplete(modeData.tt) then
+                                icons = icons .. "|t20:20:/esoui/art/ava/overview_icon_underdog_score.dds|t"
+                            end
+                            if modeData.nd and IsAchievementComplete(modeData.nd) then
+                                icons = icons .. "|t20:20:/esoui/art/treeicons/gamepad/gp_tutorial_idexicon_death.dds|t"
+                            end
+                            GROUP_SYNERGIZER.Label("GROUP_SYNERGIZER_DungeonInfo" .. c .. i, obj, {80,20}, {LEFT,LEFT,465,0}, "ZoFontGameLarge", nil, {0,1}, icons)
 
-                                    local completed, daily
-                                    for _, pv in pairs(Pledges) do
-                                        if pv.dungeon == GetQuestName(v.pledge) then
-                                            completed, daily = pv.complete, pv.daily
-                                            break
-                                        end
-                                    end
-
-                                    if daily ~= nil then
-                                        local dailyText = daily and (" ["..GROUP_SYNERGIZER.Localization.Loc("PledgeDaily").."]") or ""
-                                        if completed == false then
-                                            obj.text:SetText(orig.."|cb7ff00 "..dailyText.."|r |c00ffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeQuest").."]|r")
-                                        elseif completed == true then
-                                            obj.text:SetText(orig.."|cb7ff00 "..dailyText.."|r |cffffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeDone").."]|r")
-                                        elseif daily then
-                                            obj.text:SetText(orig.." |cb7ff00"..dailyText.."|r")
-                                        end
-                                    end
-                                    obj.pledge = completed == false
-                                    found = true
+                            local completed, daily
+                            local pledgeName = GetQuestName(dungeon.pledge)
+                            for _, pv in pairs(Pledges) do
+                                if pv.dungeon == pledgeName then
+                                    completed, daily = pv.complete, pv.daily
                                     break
                                 end
                             end
-                            if found then break end
+
+                            if daily ~= nil then
+                                local dailyText = daily and (" ["..GROUP_SYNERGIZER.Localization.Loc("PledgeDaily").."]") or ""
+                                if completed == false then
+                                    obj.text:SetText(orig.."|cb7ff00 "..dailyText.."|r |c00ffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeQuest").."]|r")
+                                elseif completed == true then
+                                    obj.text:SetText(orig.."|cb7ff00 "..dailyText.."|r |cffffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeDone").."]|r")
+                                elseif daily then
+                                    obj.text:SetText(orig.." |cb7ff00"..dailyText.."|r")
+                                end
+                            end
+                            obj.pledge = completed == false
                         end
                     end
                 end
@@ -207,33 +236,35 @@ function GROUP_SYNERGIZER.Pledges()
     end)
 end
 
-function GROUP_SYNERGIZER.GetToDay()
-    return math.floor((GetTimeStamp() - 1615748400) / 86400)
-end
-
 function GROUP_SYNERGIZER.DailyPledges()
     local Pledges = GROUP_SYNERGIZER.GetGoalPledges()
-    local day = GROUP_SYNERGIZER.GetToDay()
     df("|t16:16:ESOUI/art/icons/ability_weapon_001.dds|t |cffffff%s", GROUP_SYNERGIZER.Localization.Loc("PledgeSlash"))
-    for npc = 1, 3 do
-        local dp = DungeonData[npc]
-        local index = 1 + (day + dp.shift) % #dp
-        local pledge = GetQuestName(dp[index].pledge)
+    local lupPledges = LibUndauntedPledges.GetPledges()
+    local pledgeGivers = { LibUndauntedPledges.BASE1, LibUndauntedPledges.BASE2, LibUndauntedPledges.DLC1 }
+    for npcIndex, giverId in ipairs(pledgeGivers) do
+        local info = lupPledges and lupPledges[giverId]
+        local pledgeName
+        if info and info.questId and info.questId > 0 then
+            pledgeName = GetQuestName(info.questId)
+        end
         local quest = ""
-        if pledge then
+        if pledgeName and Pledges then
             for _, v in pairs(Pledges) do
-                if v.dungeon == pledge then
+                if v.dungeon == pledgeName then
                     quest = v.complete and "|cffffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeDone").."]|r"
                         or "|c00ffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeQuest").."]|r"
                     break
                 end
             end
         end
-        local npcname = GROUP_SYNERGIZER.Localization.Loc("PledgeNPC")[npc]
+        local npcname = GROUP_SYNERGIZER.Localization.Loc("PledgeNPC")[npcIndex]
+        if not pledgeName or pledgeName == "" then
+            pledgeName = "?"
+        end
         if quest ~= "" then
-            df("|cb5b5b5%i.|r |cb7ff00%s|r %s - |cb5b5b5%s|r", npc, pledge, quest, npcname)
+            df("|cb5b5b5%i.|r |cb7ff00%s|r %s - |cb5b5b5%s|r", npcIndex, pledgeName, quest, npcname)
         else
-            df("|cb5b5b5%i.|r |cb7ff00%s|r - |cb5b5b5%s|r", npc, pledge, npcname)
+            df("|cb5b5b5%i.|r |cb7ff00%s|r - |cb5b5b5%s|r", npcIndex, pledgeName, npcname)
         end
     end
 end
@@ -242,21 +273,13 @@ function GROUP_SYNERGIZER.GetGoalPledges()
     if not GROUP_SYNERGIZER.EnhanceGAF then return end
 
     local pledgeData = {}
-    local day = GROUP_SYNERGIZER.GetToDay()
+    local dailyNames = GetTodayDailyPledgeNames()
 
     for i = 1, MAX_JOURNAL_QUESTS do
         local questName, _, _, stepType, _, _, _, _, _, questType, instanceDisplayType = GetJournalQuestInfo(i)
         if questName and questName ~= "" and questType == QUEST_TYPE_UNDAUNTED_PLEDGE and instanceDisplayType == INSTANCE_TYPE_GROUP then
             local isDaily = false
-            for npc = 1, 3 do
-                local dp = DungeonData[npc]
-                local index = 1 + (day + dp.shift) % #dp
-                local pledge = GetQuestName(dp[index].pledge)
-                if pledge and questName == pledge then
-                    isDaily = true
-                    break
-                end
-            end
+            isDaily = dailyNames[questName] or false
             table.insert(pledgeData, {
                 dungeon = questName,
                 haveQuest = stepType == QUEST_STEP_TYPE_AND,
