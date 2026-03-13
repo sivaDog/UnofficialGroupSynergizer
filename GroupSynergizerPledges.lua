@@ -1,4 +1,4 @@
-local DungeonData={ 
+local DungeonData={
     [1]={--Maj al-Ragath
         {QID = 3993, pledge=5247, normal={id=2, ac=294}, vet={id=299, ac=1556, hm=1561, tt=1559, nd=1560}},-- "Fungal Grotto I"
         {QID = 4597, pledge=5246, normal={id=300, ac=1555}, vet={id=301, ac=545, hm=451, tt=449, nd=1564}},-- "Banished Cells II"
@@ -199,7 +199,7 @@ function GROUP_SYNERGIZER.Pledges()
     ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, 'OnEffectivelyHidden', function()
         if GROUP_SYNERGIZER.perfectPixelCompat and not GROUP_SYNERGIZER.showSpecificDung then
             ZO_SearchingForGroupStatus:ClearAnchors()
-            ZO_SearchingForGroupStatus:SetAnchor(BOTTOM, parent, BOTTOM, 0, -76)
+            ZO_SearchingForGroupStatus:SetAnchor(BOTTOM, parent, BOTTOM,-474,-33)
             ZO_SearchingForGroupStatus:SetDrawTier(2)
         end
         if GROUP_SYNERGIZER_PledgesCheck then GROUP_SYNERGIZER_PledgesCheck:SetHidden(true) end
