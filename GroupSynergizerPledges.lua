@@ -65,6 +65,10 @@ local DungeonData={
     },
 }
 
+-- Expose dungeon metadata for external patches/addons
+GROUP_SYNERGIZER = GROUP_SYNERGIZER or {}
+GROUP_SYNERGIZER.DungeonData = DungeonData
+
 local function FindDungeonByActivityId(activityId, mode)
     if not activityId or not mode then return nil end
     for npc = 1, 3 do
@@ -75,6 +79,23 @@ local function FindDungeonByActivityId(activityId, mode)
             end
         end
     end
+end
+
+local function GetPledgeStatus(pledges, pledgeName)
+    if not pledges or not pledgeName or pledgeName == "" then
+        return nil, nil
+    end
+    for _, info in ipairs(pledges) do
+        if info.dungeon == pledgeName then
+            return info.complete, info.daily
+        end
+    end
+    return nil, nil
+end
+
+local function HasIncompletePledge(pledges, pledgeName)
+    local complete = GetPledgeStatus(pledges, pledgeName)
+    return complete == false
 end
 
 local function GetTodayDailyPledgeNames()
@@ -110,12 +131,9 @@ function GROUP_SYNERGIZER.Pledges()
                 local dungeon = FindDungeonByActivityId(id, mode)
                 if dungeon then
                     local pledgeName = GetQuestName(dungeon.pledge)
-                    for _, v in pairs(pledges) do
-                        if v.dungeon == pledgeName and not v.complete then
-                            obj.check:SetState(BSTATE_PRESSED, true)
-                            ZO_ACTIVITY_FINDER_ROOT_MANAGER:ToggleLocationSelected(obj.node.data)
-                            break
-                        end
+                    if HasIncompletePledge(pledges, pledgeName) then
+                        obj.check:SetState(BSTATE_PRESSED, true)
+                        ZO_ACTIVITY_FINDER_ROOT_MANAGER:ToggleLocationSelected(obj.node.data)
                     end
                 end
             end
@@ -154,14 +172,8 @@ function GROUP_SYNERGIZER.Pledges()
                             end
                             GROUP_SYNERGIZER.Label("GROUP_SYNERGIZER_DungeonInfo" .. c .. i, obj, {80,20}, {LEFT,LEFT,465,0}, "ZoFontGameLarge", nil, {0,1}, icons)
 
-                            local completed, daily
                             local pledgeName = GetQuestName(dungeon.pledge)
-                            for _, pv in pairs(Pledges) do
-                                if pv.dungeon == pledgeName then
-                                    completed, daily = pv.complete, pv.daily
-                                    break
-                                end
-                            end
+                            local completed, daily = GetPledgeStatus(Pledges, pledgeName)
 
                             if daily ~= nil then
                                 local dailyText = daily and (" ["..GROUP_SYNERGIZER.Localization.Loc("PledgeDaily").."]") or ""
@@ -237,7 +249,7 @@ function GROUP_SYNERGIZER.Pledges()
 end
 
 function GROUP_SYNERGIZER.DailyPledges()
-    local Pledges = GROUP_SYNERGIZER.GetGoalPledges()
+    local pledges = GROUP_SYNERGIZER.GetGoalPledges()
     df("|t16:16:ESOUI/art/icons/ability_weapon_001.dds|t |cffffff%s", GROUP_SYNERGIZER.Localization.Loc("PledgeSlash"))
     local lupPledges = LibUndauntedPledges.GetPledges()
     local pledgeGivers = { LibUndauntedPledges.BASE1, LibUndauntedPledges.BASE2, LibUndauntedPledges.DLC1 }
@@ -248,13 +260,11 @@ function GROUP_SYNERGIZER.DailyPledges()
             pledgeName = GetQuestName(info.questId)
         end
         local quest = ""
-        if pledgeName and Pledges then
-            for _, v in pairs(Pledges) do
-                if v.dungeon == pledgeName then
-                    quest = v.complete and "|cffffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeDone").."]|r"
-                        or "|c00ffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeQuest").."]|r"
-                    break
-                end
+        if pledgeName and pledges then
+            local completed = GetPledgeStatus(pledges, pledgeName)
+            if completed ~= nil then
+                quest = completed and "|cffffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeDone").."]|r"
+                    or "|c00ffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeQuest").."]|r"
             end
         end
         local npcname = GROUP_SYNERGIZER.Localization.Loc("PledgeNPC")[npcIndex]
