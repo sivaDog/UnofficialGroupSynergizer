@@ -118,9 +118,10 @@ local function GetTodayDailyPledgeNames()
 end
 
 function GROUP_SYNERGIZER.Pledges()
-    local pledges = GROUP_SYNERGIZER.GetGoalPledges()
-
     local function CheckPledges(c)
+        -- Fresh journal state each click (outer local pledges was only set once at addon load).
+        local pledgesNow = GROUP_SYNERGIZER.GetGoalPledges()
+        if not pledgesNow then return end
         local parent = _G["ZO_DungeonFinder_KeyboardListSectionScrollChildContainer" .. c]
         if not parent then return end
         for i = 1, parent:GetNumChildren() do
@@ -131,7 +132,7 @@ function GROUP_SYNERGIZER.Pledges()
                 local dungeon = FindDungeonByActivityId(id, mode)
                 if dungeon then
                     local pledgeName = GetQuestName(dungeon.pledge)
-                    if HasIncompletePledge(pledges, pledgeName) then
+                    if HasIncompletePledge(pledgesNow, pledgeName) then
                         obj.check:SetState(BSTATE_PRESSED, true)
                         ZO_ACTIVITY_FINDER_ROOT_MANAGER:ToggleLocationSelected(obj.node.data)
                     end
@@ -153,7 +154,6 @@ function GROUP_SYNERGIZER.Pledges()
                     if obj then
                         local id = obj.node.data.id
                         local mode = obj.node.data.levelMin >= 50 and "vet" or "normal"
-                        local orig = obj.text:GetText()
                         local dungeon = FindDungeonByActivityId(id, mode)
                         if dungeon then
                             local icons = ""
@@ -174,16 +174,19 @@ function GROUP_SYNERGIZER.Pledges()
 
                             local pledgeName = GetQuestName(dungeon.pledge)
                             local completed, daily = GetPledgeStatus(Pledges, pledgeName)
-
+                            local pledgeText = ""
                             if daily ~= nil then
                                 local dailyText = daily and (" ["..GROUP_SYNERGIZER.Localization.Loc("PledgeDaily").."]") or ""
                                 if completed == false then
-                                    obj.text:SetText(orig.."|cb7ff00 "..dailyText.."|r |c00ffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeQuest").."]|r")
+                                    pledgeText = "|cb7ff00 "..dailyText.."|r |c00ffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeQuest").."]|r"
                                 elseif completed == true then
-                                    obj.text:SetText(orig.."|cb7ff00 "..dailyText.."|r |cffffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeDone").."]|r")
+                                    pledgeText = "|cb7ff00 "..dailyText.."|r |cffffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeDone").."]|r"
                                 elseif daily then
-                                    obj.text:SetText(orig.." |cb7ff00"..dailyText.."|r")
+                                    pledgeText = " |cb7ff00"..dailyText.."|r"
                                 end
+                            end
+                            if obj.text then
+                                GROUP_SYNERGIZER.Label("GROUP_SYNERGIZER_DungeonPledge" .. c .. i, obj, {180,20}, {LEFT, RIGHT, 5, -3, obj.text}, "ZoFontGameLarge", nil, {0,1}, pledgeText)
                             end
                             obj.pledge = completed == false
                         end
@@ -200,7 +203,9 @@ function GROUP_SYNERGIZER.Pledges()
                     btn:SetWidth(200, 28)
                     btn:SetText(GROUP_SYNERGIZER.Localization.Loc("CheckQuests"))
                     btn:SetClickSound("Click")
-                    btn:SetHandler("OnClicked", function() CheckPledges(c) end)
+                    -- Lua 5.1: loop var `c` must not be captured in closure (would be 4 after the for ends).
+                    local sectionIndex = c
+                    btn:SetHandler("OnClicked", function() CheckPledges(sectionIndex) end)
                     btn:SetState(GROUP_SYNERGIZER.checkPledges.state)
                     btn:SetHidden(GROUP_SYNERGIZER.coolDownStatus[LFG_COOLDOWN_ACTIVITY_STARTED])
                     if GROUP_SYNERGIZER.perfectPixelCompat then
