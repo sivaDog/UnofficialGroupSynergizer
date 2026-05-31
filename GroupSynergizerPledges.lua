@@ -69,6 +69,13 @@ local DungeonData={
 GROUP_SYNERGIZER = GROUP_SYNERGIZER or {}
 GROUP_SYNERGIZER.DungeonData = DungeonData
 
+local ICON_QUEST_DONE = "|t16:16:/esoui/art/cadwell/check.dds|t"
+local ICON_HARDMODE = "|t20:20:/esoui/art/unitframes/target_veteranrank_icon.dds|t"
+local ICON_TRIFECTA = "|t20:20:/esoui/art/ava/overview_icon_underdog_score.dds|t"
+local ICON_NO_DEATH = "|t20:20:/esoui/art/treeicons/gamepad/gp_tutorial_idexicon_death.dds|t"
+
+local cacheEventsRegistered = false
+
 local function FindDungeonByActivityId(activityId, mode)
     if not activityId or not mode then return nil end
     for npc = 1, 3 do
@@ -117,139 +124,259 @@ local function GetTodayDailyPledgeNames()
     return namesByQuestName
 end
 
-function GROUP_SYNERGIZER.Pledges()
-    local function CheckPledges(c)
-        -- Fresh journal state each click (outer local pledges was only set once at addon load).
-        local pledgesNow = GROUP_SYNERGIZER.GetGoalPledges()
-        if not pledgesNow then return end
-        local parent = _G["ZO_DungeonFinder_KeyboardListSectionScrollChildContainer" .. c]
-        if not parent then return end
-        for i = 1, parent:GetNumChildren() do
-            local obj = parent:GetChild(i)
-            if obj and obj.check:GetState() == 0 then
-                local id = obj.node.data.id
-                local mode = obj.node.data.levelMin >= 50 and "vet" or "normal"
-                local dungeon = FindDungeonByActivityId(id, mode)
-                if dungeon then
-                    local pledgeName = GetQuestName(dungeon.pledge)
-                    if HasIncompletePledge(pledgesNow, pledgeName) then
-                        obj.check:SetState(BSTATE_PRESSED, true)
-                        ZO_ACTIVITY_FINDER_ROOT_MANAGER:ToggleLocationSelected(obj.node.data)
-                    end
+local function BuildPledgeText(completed, daily)
+    if daily == nil then return "" end
+    local dailyText = daily and (" ["..GROUP_SYNERGIZER.Localization.Loc("PledgeDaily").."]") or ""
+    if completed == false then
+        return "|cb7ff00 "..dailyText.."|r |c00ffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeQuest").."]|r"
+    elseif completed == true then
+        return "|cb7ff00 "..dailyText.."|r |cffffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeDone").."]|r"
+    elseif daily then
+        return " |cb7ff00"..dailyText.."|r"
+    end
+    return ""
+end
+
+local function BuildIconText(cacheEntry)
+    if not cacheEntry then return "" end
+    local icons = ""
+    if cacheEntry.questDone then
+        icons = icons .. ICON_QUEST_DONE
+    end
+    if cacheEntry.hm then
+        icons = icons .. ICON_HARDMODE
+    end
+    if cacheEntry.tt then
+        icons = icons .. ICON_TRIFECTA
+    end
+    if cacheEntry.nd then
+        icons = icons .. ICON_NO_DEATH
+    end
+    return icons
+end
+
+-- Quest/achievement completion: cached at login and refreshed on achievement events.
+function GROUP_SYNERGIZER.BuildCompletionCache()
+    local cache = {}
+    for npc = 1, 3 do
+        for _, dungeon in ipairs(DungeonData[npc]) do
+            local questDone = GetCompletedQuestInfo(dungeon.QID) ~= ""
+            local pledgeName = GetQuestName(dungeon.pledge)
+            for _, mode in ipairs({ "normal", "vet" }) do
+                local modeData = dungeon[mode]
+                if modeData and modeData.id then
+                    cache[modeData.id] = {
+                        questDone = questDone,
+                        hm = modeData.hm and IsAchievementComplete(modeData.hm) or false,
+                        tt = modeData.tt and IsAchievementComplete(modeData.tt) or false,
+                        nd = modeData.nd and IsAchievementComplete(modeData.nd) or false,
+                        pledgeName = pledgeName,
+                    }
                 end
             end
         end
     end
+    GROUP_SYNERGIZER.completionCache = cache
+end
 
-       -- https://wiki.esoui.com/Dungeon_Scroll_List_Data
-    local function MarkPledges()
-        if not GROUP_SYNERGIZER.EnhanceGAF then return end
-        local isVet = (GetUnitEffectiveChampionPoints('player') >= 160 and ZO_GetEffectiveDungeonDifficulty() == DUNGEON_DIFFICULTY_VETERAN) and 3 or 2
+-- Today's daily pledge dungeon names: date-driven, safe to cache per session.
+function GROUP_SYNERGIZER.RefreshDailyPledges()
+    GROUP_SYNERGIZER.dailyPledgeNames = GetTodayDailyPledgeNames()
+end
 
-        for c = 2, 3 do
-            local parent = _G["ZO_DungeonFinder_KeyboardListSectionScrollChildContainer" .. c]
-            if parent then
-                for i = 1, parent:GetNumChildren() do
-                    local obj = parent:GetChild(i)
-                    if obj then
-                        local id = obj.node.data.id
-                        local mode = obj.node.data.levelMin >= 50 and "vet" or "normal"
-                        local dungeon = FindDungeonByActivityId(id, mode)
-                        if dungeon then
-                            local icons = ""
-                            local modeData = dungeon[mode]
-                            if GetCompletedQuestInfo(dungeon.QID) ~= "" then
-                                icons = icons .. "|t16:16:/esoui/art/cadwell/check.dds|t"
-                            end
-                            if modeData.hm and IsAchievementComplete(modeData.hm) then
-                                icons = icons .. "|t20:20:/esoui/art/unitframes/target_veteranrank_icon.dds|t"
-                            end
-                            if modeData.tt and IsAchievementComplete(modeData.tt) then
-                                icons = icons .. "|t20:20:/esoui/art/ava/overview_icon_underdog_score.dds|t"
-                            end
-                            if modeData.nd and IsAchievementComplete(modeData.nd) then
-                                icons = icons .. "|t20:20:/esoui/art/treeicons/gamepad/gp_tutorial_idexicon_death.dds|t"
-                            end
-                            GROUP_SYNERGIZER.Label("GROUP_SYNERGIZER_DungeonInfo" .. c .. i, obj, {80,20}, {LEFT,LEFT,465,0}, "ZoFontGameLarge", nil, {0,1}, icons)
+-- Active pledge journal state: always live (accept/complete during play).
+function GROUP_SYNERGIZER.RefreshPledgeJournal()
+    GROUP_SYNERGIZER.pledgeJournal = GROUP_SYNERGIZER.GetGoalPledges()
+end
 
-                            local pledgeName = GetQuestName(dungeon.pledge)
-                            local completed, daily = GetPledgeStatus(Pledges, pledgeName)
-                            local pledgeText = ""
-                            if daily ~= nil then
-                                local dailyText = daily and (" ["..GROUP_SYNERGIZER.Localization.Loc("PledgeDaily").."]") or ""
-                                if completed == false then
-                                    pledgeText = "|cb7ff00 "..dailyText.."|r |c00ffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeQuest").."]|r"
-                                elseif completed == true then
-                                    pledgeText = "|cb7ff00 "..dailyText.."|r |cffffff["..GROUP_SYNERGIZER.Localization.Loc("PledgeDone").."]|r"
-                                elseif daily then
-                                    pledgeText = " |cb7ff00"..dailyText.."|r"
-                                end
-                            end
-                            if obj.text then
-                                GROUP_SYNERGIZER.Label("GROUP_SYNERGIZER_DungeonPledge" .. c .. i, obj, {180,20}, {LEFT, RIGHT, 5, -3, obj.text}, "ZoFontGameLarge", nil, {0,1}, pledgeText)
-                            end
-                            obj.pledge = completed == false
+function GROUP_SYNERGIZER.DecorateDungeonRow(obj)
+    if not GROUP_SYNERGIZER.EnhanceGAF or not obj or not obj.node or not obj.node.data then return end
+    local activityId = obj.node.data.id
+    local cacheEntry = GROUP_SYNERGIZER.completionCache and GROUP_SYNERGIZER.completionCache[activityId]
+    if not cacheEntry then return end
+
+    GROUP_SYNERGIZER.Label(
+        "GROUP_SYNERGIZER_DungeonInfo_" .. activityId,
+        obj, {80, 20}, {LEFT, LEFT, 465, 0},
+        "ZoFontGameLarge", nil, {0, 1}, BuildIconText(cacheEntry)
+    )
+
+    local completed, daily = GetPledgeStatus(GROUP_SYNERGIZER.pledgeJournal, cacheEntry.pledgeName)
+    if obj.text then
+        GROUP_SYNERGIZER.Label(
+            "GROUP_SYNERGIZER_DungeonPledge_" .. activityId,
+            obj, {180, 20}, {LEFT, RIGHT, 5, -3, obj.text},
+            "ZoFontGameLarge", nil, {0, 1}, BuildPledgeText(completed, daily)
+        )
+    end
+    obj.pledge = completed == false
+end
+
+function GROUP_SYNERGIZER.DecorateDungeonRows()
+    if not GROUP_SYNERGIZER.EnhanceGAF then return end
+    for c = 2, 3 do
+        local parent = _G["ZO_DungeonFinder_KeyboardListSectionScrollChildContainer" .. c]
+        if parent then
+            for i = 1, parent:GetNumChildren() do
+                GROUP_SYNERGIZER.DecorateDungeonRow(parent:GetChild(i))
+            end
+        end
+    end
+end
+
+local function GetActiveDungeonSection()
+    return (GetUnitEffectiveChampionPoints("player") >= 160 and ZO_GetEffectiveDungeonDifficulty() == DUNGEON_DIFFICULTY_VETERAN) and 3 or 2
+end
+
+function GROUP_SYNERGIZER.ExpandDungeonListHeaders()
+    local activeSection = GetActiveDungeonSection()
+    for c = 2, 3 do
+        local header = _G["ZO_DungeonFinder_KeyboardListSectionScrollChildZO_ActivityFinderTemplateNavigationHeader_Keyboard" .. c - 1]
+        if header and ((activeSection == c) ~= (header.text:GetColor() == 1)) then
+            header:OnMouseUp(true)
+        end
+    end
+end
+
+function GROUP_SYNERGIZER.SetupDungeonFinderChrome()
+    if not GROUP_SYNERGIZER.EnhanceGAF then return end
+    local activeSection = GetActiveDungeonSection()
+    local parentKeyboard = ZO_DungeonFinder_Keyboard
+    if not parentKeyboard then return end
+
+    GROUP_SYNERGIZER.OnCooldownsUpdate(EVENT_ACTIVITY_FINDER_COOLDOWNS_UPDATE)
+
+    if activeSection == 2 or activeSection == 3 then
+        local btn = GROUP_SYNERGIZER_PledgesCheck or WINDOW_MANAGER:CreateControlFromVirtual("GROUP_SYNERGIZER_PledgesCheck", parentKeyboard, "ZO_DefaultButton")
+        GROUP_SYNERGIZER.checkPledges.button = btn
+        btn:SetWidth(200, 28)
+        btn:SetText(GROUP_SYNERGIZER.Localization.Loc("CheckQuests"))
+        btn:SetClickSound("Click")
+        btn:SetHandler("OnClicked", function()
+            local pledgesNow = GROUP_SYNERGIZER.GetGoalPledges()
+            if not pledgesNow then return end
+            local parent = _G["ZO_DungeonFinder_KeyboardListSectionScrollChildContainer" .. activeSection]
+            if not parent then return end
+            for i = 1, parent:GetNumChildren() do
+                local obj = parent:GetChild(i)
+                if obj and obj.check:GetState() == 0 then
+                    local id = obj.node.data.id
+                    local mode = obj.node.data.levelMin >= 50 and "vet" or "normal"
+                    local dungeon = FindDungeonByActivityId(id, mode)
+                    if dungeon then
+                        local pledgeName = GetQuestName(dungeon.pledge)
+                        if HasIncompletePledge(pledgesNow, pledgeName) then
+                            obj.check:SetState(BSTATE_PRESSED, true)
+                            ZO_ACTIVITY_FINDER_ROOT_MANAGER:ToggleLocationSelected(obj.node.data)
                         end
                     end
                 end
             end
-
-            local parentKeyboard = ZO_DungeonFinder_Keyboard
-            if parentKeyboard then
-                GROUP_SYNERGIZER.OnCooldownsUpdate(EVENT_ACTIVITY_FINDER_COOLDOWNS_UPDATE)
-                if isVet == c then
-                    local btn = GROUP_SYNERGIZER_PledgesCheck or WINDOW_MANAGER:CreateControlFromVirtual("GROUP_SYNERGIZER_PledgesCheck", parentKeyboard, "ZO_DefaultButton")
-                    GROUP_SYNERGIZER.checkPledges.button = btn
-                    btn:SetWidth(200, 28)
-                    btn:SetText(GROUP_SYNERGIZER.Localization.Loc("CheckQuests"))
-                    btn:SetClickSound("Click")
-                    -- Lua 5.1: loop var `c` must not be captured in closure (would be 4 after the for ends).
-                    local sectionIndex = c
-                    btn:SetHandler("OnClicked", function() CheckPledges(sectionIndex) end)
-                    btn:SetState(GROUP_SYNERGIZER.checkPledges.state)
-                    btn:SetHidden(GROUP_SYNERGIZER.coolDownStatus[LFG_COOLDOWN_ACTIVITY_STARTED])
-                    if GROUP_SYNERGIZER.perfectPixelCompat then
-                        btn:SetAnchor(BOTTOM, parentKeyboard, BOTTOM, 200, 0)
-                        ZO_SearchingForGroupStatus:ClearAnchors()
-                        ZO_SearchingForGroupStatus:SetAnchor(BOTTOM, parentKeyboard, BOTTOM, 0, -114)
-                        ZO_SearchingForGroupStatus:SetDrawTier(2)
-                    else
-                        btn:ClearAnchors()
-                        btn:SetAnchor(BOTTOM, parentKeyboard, BOTTOM, 200)
-                        btn:SetDrawTier(2)
-                    end
-                    if IsUnitGrouped('player') and not IsUnitGroupLeader('player') then
-                        btn:SetState(BSTATE_DISABLED)
-                    end
-                end
-                if not GROUP_SYNERGIZER.perfectPixelCompat and ZO_DungeonFinder_KeyboardQueueButton then
-                    ZO_DungeonFinder_KeyboardQueueButton:ClearAnchors()
-                    ZO_DungeonFinder_KeyboardQueueButton:SetAnchor(BOTTOM, parentKeyboard, BOTTOM, -parentKeyboard:GetWidth()/5, 0)
-                    ZO_DungeonFinder_KeyboardQueueButton:SetDrawTier(2)
-                end
-                local header = _G["ZO_DungeonFinder_KeyboardListSectionScrollChildZO_ActivityFinderTemplateNavigationHeader_Keyboard" .. c - 1]
-                if header and ((isVet == c) ~= (header.text:GetColor() == 1)) then
-                    header:OnMouseUp(true)
-                end
-            end
+        end)
+        btn:SetState(GROUP_SYNERGIZER.checkPledges.state)
+        btn:SetHidden(GROUP_SYNERGIZER.coolDownStatus[LFG_COOLDOWN_ACTIVITY_STARTED])
+        if GROUP_SYNERGIZER.perfectPixelCompat then
+            btn:SetAnchor(BOTTOM, parentKeyboard, BOTTOM, 200, 0)
+            ZO_SearchingForGroupStatus:ClearAnchors()
+            ZO_SearchingForGroupStatus:SetAnchor(BOTTOM, parentKeyboard, BOTTOM, 0, -114)
+            ZO_SearchingForGroupStatus:SetDrawTier(2)
+        else
+            btn:ClearAnchors()
+            btn:SetAnchor(BOTTOM, parentKeyboard, BOTTOM, 200)
+            btn:SetDrawTier(2)
+        end
+        if IsUnitGrouped("player") and not IsUnitGroupLeader("player") then
+            btn:SetState(BSTATE_DISABLED)
         end
     end
 
-    ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, 'OnEffectivelyShown', function()
-        GROUP_SYNERGIZER.OnCooldownsUpdate(EVENT_ACTIVITY_FINDER_COOLDOWNS_UPDATE)
-        Pledges = GROUP_SYNERGIZER.GetGoalPledges()
-        GROUP_SYNERGIZER.CallLater("MarkPledges", 250, MarkPledges)
-        GROUP_SYNERGIZER.showSpecificDung = true
+    if not GROUP_SYNERGIZER.perfectPixelCompat and ZO_DungeonFinder_KeyboardQueueButton then
+        ZO_DungeonFinder_KeyboardQueueButton:ClearAnchors()
+        ZO_DungeonFinder_KeyboardQueueButton:SetAnchor(BOTTOM, parentKeyboard, BOTTOM, -parentKeyboard:GetWidth() / 5, 0)
+        ZO_DungeonFinder_KeyboardQueueButton:SetDrawTier(2)
+    end
+
+    GROUP_SYNERGIZER.ExpandDungeonListHeaders()
+end
+
+local function OnDungeonListRefresh()
+    if not GROUP_SYNERGIZER.EnhanceGAF or not GROUP_SYNERGIZER.showSpecificDung then return end
+    GROUP_SYNERGIZER.DecorateDungeonRows()
+end
+
+local function RegisterCacheEvents()
+    if cacheEventsRegistered then return end
+    cacheEventsRegistered = true
+
+    local em = GROUP_SYNERGIZER.eventManager
+    local prefix = GROUP_SYNERGIZER.name .. "_PledgeCache"
+
+    em:RegisterForEvent(prefix .. "_PlayerActivated", EVENT_PLAYER_ACTIVATED, function()
+        GROUP_SYNERGIZER.BuildCompletionCache()
+        GROUP_SYNERGIZER.RefreshDailyPledges()
+        GROUP_SYNERGIZER.RefreshPledgeJournal()
     end)
 
-    ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, 'OnEffectivelyHidden', function()
+    em:RegisterForEvent(prefix .. "_Achievement", EVENT_ACHIEVEMENT_AWARDED, function()
+        GROUP_SYNERGIZER.BuildCompletionCache()
+        OnDungeonListRefresh()
+    end)
+
+    local function OnPledgeJournalChanged()
+        GROUP_SYNERGIZER.RefreshPledgeJournal()
+        OnDungeonListRefresh()
+    end
+
+    em:RegisterForEvent(prefix .. "_QuestAdded", EVENT_QUEST_ADDED, OnPledgeJournalChanged)
+    em:RegisterForEvent(prefix .. "_QuestRemoved", EVENT_QUEST_REMOVED, OnPledgeJournalChanged)
+    em:RegisterForEvent(prefix .. "_QuestComplete", EVENT_QUEST_COMPLETE, OnPledgeJournalChanged)
+    em:RegisterForEvent(prefix .. "_QuestCounter", EVENT_QUEST_CONDITION_COUNTER_CHANGED, OnPledgeJournalChanged)
+end
+
+local function InitCachesIfReady()
+    if not DoesUnitExist("player") then return end
+    GROUP_SYNERGIZER.BuildCompletionCache()
+    GROUP_SYNERGIZER.RefreshDailyPledges()
+    GROUP_SYNERGIZER.RefreshPledgeJournal()
+end
+
+function GROUP_SYNERGIZER.Pledges()
+    RegisterCacheEvents()
+    InitCachesIfReady()
+
+    local function OnDungeonListShown()
+        GROUP_SYNERGIZER.OnCooldownsUpdate(EVENT_ACTIVITY_FINDER_COOLDOWNS_UPDATE)
+        GROUP_SYNERGIZER.RefreshDailyPledges()
+        GROUP_SYNERGIZER.RefreshPledgeJournal()
+        GROUP_SYNERGIZER.showSpecificDung = true
+        GROUP_SYNERGIZER.SetupDungeonFinderChrome()
+        GROUP_SYNERGIZER.DecorateDungeonRows()
+        -- Tree rows may appear one frame after header expand.
+        zo_callLater(OnDungeonListRefresh, 0)
+    end
+
+    -- https://wiki.esoui.com/Dungeon_Scroll_List_Data
+    ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, "OnEffectivelyShown", OnDungeonListShown)
+
+    ZO_PreHookHandler(ZO_DungeonFinder_KeyboardListSection, "OnEffectivelyHidden", function()
         if GROUP_SYNERGIZER.perfectPixelCompat and not GROUP_SYNERGIZER.showSpecificDung then
             ZO_SearchingForGroupStatus:ClearAnchors()
-            ZO_SearchingForGroupStatus:SetAnchor(BOTTOM, parent, BOTTOM,-474,-33)
+            ZO_SearchingForGroupStatus:SetAnchor(BOTTOM, parent, BOTTOM, -474, -33)
             ZO_SearchingForGroupStatus:SetDrawTier(2)
         end
         if GROUP_SYNERGIZER_PledgesCheck then GROUP_SYNERGIZER_PledgesCheck:SetHidden(true) end
         GROUP_SYNERGIZER.showSpecificDung = false
+    end)
+
+    ZO_PostHook(ZO_ActivityFinderTemplate_Keyboard, "RefreshView", function()
+        OnDungeonListRefresh()
+    end)
+
+    ZO_PostHook(ZO_ActivityFinderTemplate_Keyboard, "OnFilterChanged", function()
+        if GROUP_SYNERGIZER.showSpecificDung then
+            GROUP_SYNERGIZER.SetupDungeonFinderChrome()
+            zo_callLater(OnDungeonListRefresh, 0)
+        end
     end)
 end
 
@@ -288,13 +415,12 @@ function GROUP_SYNERGIZER.GetGoalPledges()
     if not GROUP_SYNERGIZER.EnhanceGAF then return end
 
     local pledgeData = {}
-    local dailyNames = GetTodayDailyPledgeNames()
+    local dailyNames = GROUP_SYNERGIZER.dailyPledgeNames or GetTodayDailyPledgeNames()
 
     for i = 1, MAX_JOURNAL_QUESTS do
         local questName, _, _, stepType, _, _, _, _, _, questType, instanceDisplayType = GetJournalQuestInfo(i)
         if questName and questName ~= "" and questType == QUEST_TYPE_UNDAUNTED_PLEDGE and instanceDisplayType == INSTANCE_TYPE_GROUP then
-            local isDaily = false
-            isDaily = dailyNames[questName] or false
+            local isDaily = dailyNames[questName] or false
             table.insert(pledgeData, {
                 dungeon = questName,
                 haveQuest = stepType == QUEST_STEP_TYPE_AND,
