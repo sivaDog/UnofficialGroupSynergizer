@@ -110,6 +110,7 @@ function GROUP_SYNERGIZER.Label(name, parent, dims, anchor, font, color, align, 
     color = (color and #color==4) and color or {1,1,1,1}
     align = (align and #align==2) and align or {0,0}
     hidden = hidden or false
+    local isNew = _G[name] == nil
     local label = _G[name] or WINDOW_MANAGER:CreateControl(name, parent, CT_LABEL)
     if dims then label:SetDimensions(dims[1], dims[2]) end
     label:ClearAnchors()
@@ -120,9 +121,11 @@ function GROUP_SYNERGIZER.Label(name, parent, dims, anchor, font, color, align, 
     label:SetVerticalAlignment(align[2])
     label:SetText(text)
     label:SetHidden(hidden)
-    local fragment = ZO_FadeSceneFragment:New(label)
-    KEYBOARD_GROUP_MENU_SCENE:AddFragment(fragment)
-    GAMEPAD_ACTIVITY_FINDER_ROOT_SCENE:AddFragment(fragment)
+    if isNew then
+        local fragment = ZO_FadeSceneFragment:New(label)
+        KEYBOARD_GROUP_MENU_SCENE:AddFragment(fragment)
+        GAMEPAD_ACTIVITY_FINDER_ROOT_SCENE:AddFragment(fragment)
+    end
     return label
 end
 

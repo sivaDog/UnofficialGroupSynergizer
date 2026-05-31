@@ -75,6 +75,8 @@ local ICON_TRIFECTA = "|t20:20:/esoui/art/ava/overview_icon_underdog_score.dds|t
 local ICON_NO_DEATH = "|t20:20:/esoui/art/treeicons/gamepad/gp_tutorial_idexicon_death.dds|t"
 
 local cacheEventsRegistered = false
+local isDecoratingRows = false
+local pledgeJournalRefreshPending = false
 
 local function FindDungeonByActivityId(activityId, mode)
     if not activityId or not mode then return nil end
@@ -213,7 +215,8 @@ function GROUP_SYNERGIZER.DecorateDungeonRow(obj)
 end
 
 function GROUP_SYNERGIZER.DecorateDungeonRows()
-    if not GROUP_SYNERGIZER.EnhanceGAF then return end
+    if not GROUP_SYNERGIZER.EnhanceGAF or isDecoratingRows then return end
+    isDecoratingRows = true
     for c = 2, 3 do
         local parent = _G["ZO_DungeonFinder_KeyboardListSectionScrollChildContainer" .. c]
         if parent then
@@ -222,6 +225,7 @@ function GROUP_SYNERGIZER.DecorateDungeonRows()
             end
         end
     end
+    isDecoratingRows = false
 end
 
 local function GetActiveDungeonSection()
@@ -232,7 +236,7 @@ function GROUP_SYNERGIZER.ExpandDungeonListHeaders()
     local activeSection = GetActiveDungeonSection()
     for c = 2, 3 do
         local header = _G["ZO_DungeonFinder_KeyboardListSectionScrollChildZO_ActivityFinderTemplateNavigationHeader_Keyboard" .. c - 1]
-        if header and ((activeSection == c) ~= (header.text:GetColor() == 1)) then
+        if header and header.text and ((activeSection == c) ~= (header.text:GetColor() == 1)) then
             header:OnMouseUp(true)
         end
     end
@@ -259,7 +263,7 @@ function GROUP_SYNERGIZER.SetupDungeonFinderChrome()
             if not parent then return end
             for i = 1, parent:GetNumChildren() do
                 local obj = parent:GetChild(i)
-                if obj and obj.check:GetState() == 0 then
+                if obj and obj.check and obj.node and obj.node.data and obj.check:GetState() == 0 then
                     local id = obj.node.data.id
                     local mode = obj.node.data.levelMin >= 50 and "vet" or "normal"
                     local dungeon = FindDungeonByActivityId(id, mode)
@@ -301,7 +305,19 @@ end
 
 local function OnDungeonListRefresh()
     if not GROUP_SYNERGIZER.EnhanceGAF or not GROUP_SYNERGIZER.showSpecificDung then return end
-    GROUP_SYNERGIZER.DecorateDungeonRows()
+    if ZO_DungeonFinder_KeyboardListSection and not ZO_DungeonFinder_KeyboardListSection:IsHidden() then
+        GROUP_SYNERGIZER.DecorateDungeonRows()
+    end
+end
+
+local function SchedulePledgeJournalRefresh()
+    if pledgeJournalRefreshPending then return end
+    pledgeJournalRefreshPending = true
+    zo_callLater(function()
+        pledgeJournalRefreshPending = false
+        GROUP_SYNERGIZER.RefreshPledgeJournal()
+        OnDungeonListRefresh()
+    end, 100)
 end
 
 local function RegisterCacheEvents()
@@ -322,15 +338,10 @@ local function RegisterCacheEvents()
         OnDungeonListRefresh()
     end)
 
-    local function OnPledgeJournalChanged()
-        GROUP_SYNERGIZER.RefreshPledgeJournal()
-        OnDungeonListRefresh()
-    end
-
-    em:RegisterForEvent(prefix .. "_QuestAdded", EVENT_QUEST_ADDED, OnPledgeJournalChanged)
-    em:RegisterForEvent(prefix .. "_QuestRemoved", EVENT_QUEST_REMOVED, OnPledgeJournalChanged)
-    em:RegisterForEvent(prefix .. "_QuestComplete", EVENT_QUEST_COMPLETE, OnPledgeJournalChanged)
-    em:RegisterForEvent(prefix .. "_QuestCounter", EVENT_QUEST_CONDITION_COUNTER_CHANGED, OnPledgeJournalChanged)
+    em:RegisterForEvent(prefix .. "_QuestAdded", EVENT_QUEST_ADDED, SchedulePledgeJournalRefresh)
+    em:RegisterForEvent(prefix .. "_QuestRemoved", EVENT_QUEST_REMOVED, SchedulePledgeJournalRefresh)
+    em:RegisterForEvent(prefix .. "_QuestComplete", EVENT_QUEST_COMPLETE, SchedulePledgeJournalRefresh)
+    em:RegisterForEvent(prefix .. "_QuestCounter", EVENT_QUEST_CONDITION_COUNTER_CHANGED, SchedulePledgeJournalRefresh)
 end
 
 local function InitCachesIfReady()
@@ -368,13 +379,13 @@ function GROUP_SYNERGIZER.Pledges()
         GROUP_SYNERGIZER.showSpecificDung = false
     end)
 
-    ZO_PostHook(ZO_ActivityFinderTemplate_Keyboard, "RefreshView", function()
+    ZO_PostHook(ZO_ActivityFinderTemplate_Keyboard, "RefreshView", function(self)
+        if self ~= DUNGEON_FINDER_KEYBOARD then return end
         OnDungeonListRefresh()
     end)
 
     ZO_PostHook(ZO_ActivityFinderTemplate_Keyboard, "OnFilterChanged", function()
         if GROUP_SYNERGIZER.showSpecificDung then
-            GROUP_SYNERGIZER.SetupDungeonFinderChrome()
             zo_callLater(OnDungeonListRefresh, 0)
         end
     end)
