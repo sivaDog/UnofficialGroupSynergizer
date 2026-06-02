@@ -18,6 +18,8 @@
     SI_GROUP_SYNERGIZER_SOUND_TT	= "More Audible Sound On Ready Check",
     SI_GROUP_SYNERGIZER_SCREEN_TT	= "Better Screen Notification On Ready Check",
     SI_GROUP_SYNERGIZER_ENHANCE_TT	= "Show Daily Pledges/Quests, Auto-Accept, And Check Active Quests In Group & Activity Finder",
+    SI_GROUP_SYNERGIZER_SET_COLLECTION = "Set Collection Progress",
+    SI_GROUP_SYNERGIZER_SET_COLLECTION_TT = "Show unlocked/total set collection pieces per dungeon in Activity Finder (requires LibSets)",
     SI_GROUP_SYNERGIZER_ACCEPT_TT	= "Auto-Accept 'Looking For Group' Ready Check",
     SI_GROUP_SYNERGIZER_RELEASE_TT	= "Auto-Release On Battlegrounds Death",
     SI_GROUP_SYNERGIZER_SLASH_TT	= "Slash Commands\nDaily Pledges /pl /pledge\nGroup Leave /lv /leave",

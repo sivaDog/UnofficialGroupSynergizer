@@ -34,6 +34,7 @@ GROUP_SYNERGIZER.defaults 			= {
     AutoRelease		= false,
     Enable 			= true,
     EnhanceGAF		= true,
+    ShowSetCollectionProgress = true,
     NotifyDelay		= 2,
     ScreenNotify	= true,
     SlashCommands	= true,

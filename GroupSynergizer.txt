@@ -12,6 +12,7 @@
 ## Version: unofficial-5.0
 ## Author: |cb7ff00Scorp|r
 ## DependsOn: LibAddonMenu-2.0>=34 LibUndauntedPledges
+## OptionalDependsOn: LibSets>=9020
 ## APIVersion: 101038 101039
 ## SavedVariables: GroupSynergizerSavedVars
 ## Description: Enhanced Group-Based Activities, Notifications, and Features

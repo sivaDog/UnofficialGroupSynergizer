@@ -18,6 +18,8 @@
     SI_GROUP_SYNERGIZER_SOUND_TT 	= "Mehr hörbarer Ton bei Bereitschaftsprüfung",
     SI_GROUP_SYNERGIZER_SCREEN_TT 	= "Bessere Bildschirmbenachrichtigung bei Bereitschaftsprüfung",
     SI_GROUP_SYNERGIZER_ENHANCE_TT 	= "Tägliche Zusagen/Quests anzeigen, aktive Quests automatisch akzeptieren und im Gruppen- und Aktivitätsfinder überprüfen",
+    SI_GROUP_SYNERGIZER_SET_COLLECTION = "Set-Sammlungsfortschritt",
+    SI_GROUP_SYNERGIZER_SET_COLLECTION_TT = "Freigeschaltete/gesamte Set-Sammlungsteile pro Dungeon im Aktivitätenfinder anzeigen (benötigt LibSets)",
     SI_GROUP_SYNERGIZER_ACCEPT_TT 	= "Bereitschaftsprüfung 'Suche nach Gruppe' automatisch akzeptieren",
     SI_GROUP_SYNERGIZER_RELEASE_TT 	= "Automatische Freigabe auf Schlachtfeldern Tod",
     SI_GROUP_SYNERGIZER_SLASH_TT 	= "Schrägstrichbefehle \nTägliches Versprechen /pl /pledge \nGruppe verlassen /lv /leave",
@@ -43,5 +45,5 @@ GROUP_SYNERGIZER_PLEDGES = { -- Thank you demawi for translation
     PledgeDone 	= "Erledigt",
     PledgeSlash = "TÄGLICHE GELÖBNISSE",
     CheckQuests = "Quests überprüfen",
-    AutoAccept 	= "Automatisch Akzeptieren"
+    AutoAccept 	= "Automatisch Akzeptieren",
 }

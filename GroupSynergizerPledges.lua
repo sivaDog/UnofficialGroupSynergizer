@@ -77,6 +77,53 @@ local ICON_NO_DEATH = "|t20:20:/esoui/art/treeicons/gamepad/gp_tutorial_idexicon
 local cacheEventsRegistered = false
 local isDecoratingRows = false
 local pledgeJournalRefreshPending = false
+local collectionEventsRegistered = false
+
+local activityIdToZoneId = {}
+
+local function IsLibSetsAvailable()
+    return LibSets ~= nil
+        and type(LibSets.GetNumItemSetCollectionZoneUnlockedPieces) == "function"
+        and type(LibSets.GetAllDungeonZoneIdData) == "function"
+end
+
+local function BuildActivityIdToZoneIdMap()
+    activityIdToZoneId = {}
+    if not IsLibSetsAvailable() then return end
+
+    local allDungeonData = LibSets.GetAllDungeonZoneIdData()
+    if not allDungeonData then return end
+
+    for zoneId, data in pairs(allDungeonData) do
+        local finderIds = data.dungeonFinderId
+        if finderIds then
+            if finderIds[false] then
+                activityIdToZoneId[finderIds[false]] = zoneId
+            end
+            if finderIds[true] then
+                activityIdToZoneId[finderIds[true]] = zoneId
+            end
+        end
+    end
+end
+
+local function GetCollectionProgressForZone(zoneId)
+    if not zoneId or not IsLibSetsAvailable() then return nil, nil end
+    local ok, numUnlocked, numTotal = pcall(LibSets.GetNumItemSetCollectionZoneUnlockedPieces, zoneId)
+    if not ok or not numUnlocked or not numTotal or numTotal <= 0 then
+        return nil, nil
+    end
+    return numUnlocked, numTotal
+end
+
+local function BuildCollectionText(activityId)
+    if not GROUP_SYNERGIZER.ShowSetCollectionProgress then return "" end
+    local entry = GROUP_SYNERGIZER.collectionCache and GROUP_SYNERGIZER.collectionCache[activityId]
+    if not entry then return "" end
+
+    local color = entry.unlocked >= entry.total and "00ff00" or "aaaaaa"
+    return string.format("|c%s%d/%d|r ", color, entry.unlocked, entry.total)
+end
 
 local function FindDungeonByActivityId(activityId, mode)
     if not activityId or not mode then return nil end
@@ -181,6 +228,38 @@ function GROUP_SYNERGIZER.BuildCompletionCache()
     GROUP_SYNERGIZER.completionCache = cache
 end
 
+-- Set collection book progress per dungeon (LibSets + zone mapping).
+function GROUP_SYNERGIZER.BuildCollectionCache()
+    local cache = {}
+    if not GROUP_SYNERGIZER.ShowSetCollectionProgress or not IsLibSetsAvailable() then
+        GROUP_SYNERGIZER.collectionCache = cache
+        return
+    end
+
+    if next(activityIdToZoneId) == nil then
+        BuildActivityIdToZoneIdMap()
+    end
+
+    for npc = 1, 3 do
+        for _, dungeon in ipairs(DungeonData[npc]) do
+            for _, mode in ipairs({ "normal", "vet" }) do
+                local modeData = dungeon[mode]
+                if modeData and modeData.id then
+                    local activityId = modeData.id
+                    local zoneId = activityIdToZoneId[activityId]
+                    if zoneId then
+                        local numUnlocked, numTotal = GetCollectionProgressForZone(zoneId)
+                        if numUnlocked and numTotal then
+                            cache[activityId] = { unlocked = numUnlocked, total = numTotal }
+                        end
+                    end
+                end
+            end
+        end
+    end
+    GROUP_SYNERGIZER.collectionCache = cache
+end
+
 -- Today's daily pledge dungeon names: date-driven, safe to cache per session.
 function GROUP_SYNERGIZER.RefreshDailyPledges()
     GROUP_SYNERGIZER.dailyPledgeNames = GetTodayDailyPledgeNames()
@@ -194,6 +273,16 @@ end
 function GROUP_SYNERGIZER.DecorateDungeonRow(obj)
     if not GROUP_SYNERGIZER.EnhanceGAF or not obj or not obj.node or not obj.node.data then return end
     local activityId = obj.node.data.id
+
+    local collectionText = BuildCollectionText(activityId)
+    if collectionText ~= "" then
+        GROUP_SYNERGIZER.Label(
+            "GROUP_SYNERGIZER_DungeonCollection_" .. activityId,
+            obj, {55, 20}, {LEFT, LEFT, 400, 0},
+            "ZoFontGameLarge", nil, {2, 1}, collectionText
+        )
+    end
+
     local cacheEntry = GROUP_SYNERGIZER.completionCache and GROUP_SYNERGIZER.completionCache[activityId]
     if not cacheEntry then return end
 
@@ -329,6 +418,7 @@ local function RegisterCacheEvents()
 
     em:RegisterForEvent(prefix .. "_PlayerActivated", EVENT_PLAYER_ACTIVATED, function()
         GROUP_SYNERGIZER.BuildCompletionCache()
+        GROUP_SYNERGIZER.BuildCollectionCache()
         GROUP_SYNERGIZER.RefreshDailyPledges()
         GROUP_SYNERGIZER.RefreshPledgeJournal()
     end)
@@ -344,14 +434,35 @@ local function RegisterCacheEvents()
     em:RegisterForEvent(prefix .. "_QuestCounter", EVENT_QUEST_CONDITION_COUNTER_CHANGED, SchedulePledgeJournalRefresh)
 end
 
+local function RegisterCollectionEvents()
+    if collectionEventsRegistered or not IsLibSetsAvailable() then return end
+    collectionEventsRegistered = true
+
+    local em = GROUP_SYNERGIZER.eventManager
+    local prefix = GROUP_SYNERGIZER.name .. "_SetCollection"
+    local function OnCollectionChanged()
+        GROUP_SYNERGIZER.BuildCollectionCache()
+        OnDungeonListRefresh()
+    end
+
+    em:RegisterForEvent(prefix .. "_Updated", EVENT_ITEM_SET_COLLECTION_UPDATED, OnCollectionChanged)
+    em:RegisterForEvent(prefix .. "_UpdatedAll", EVENT_ITEM_SET_COLLECTIONS_UPDATED, OnCollectionChanged)
+end
+
 local function InitCachesIfReady()
     if not DoesUnitExist("player") then return end
     GROUP_SYNERGIZER.BuildCompletionCache()
+    GROUP_SYNERGIZER.BuildCollectionCache()
     GROUP_SYNERGIZER.RefreshDailyPledges()
     GROUP_SYNERGIZER.RefreshPledgeJournal()
 end
 
 function GROUP_SYNERGIZER.Pledges()
+    GROUP_SYNERGIZER.libSetsAvailable = IsLibSetsAvailable()
+    if GROUP_SYNERGIZER.libSetsAvailable then
+        BuildActivityIdToZoneIdMap()
+        RegisterCollectionEvents()
+    end
     RegisterCacheEvents()
     InitCachesIfReady()
 
@@ -359,6 +470,7 @@ function GROUP_SYNERGIZER.Pledges()
         GROUP_SYNERGIZER.OnCooldownsUpdate(EVENT_ACTIVITY_FINDER_COOLDOWNS_UPDATE)
         GROUP_SYNERGIZER.RefreshDailyPledges()
         GROUP_SYNERGIZER.RefreshPledgeJournal()
+        GROUP_SYNERGIZER.BuildCollectionCache()
         GROUP_SYNERGIZER.showSpecificDung = true
         GROUP_SYNERGIZER.SetupDungeonFinderChrome()
         GROUP_SYNERGIZER.DecorateDungeonRows()

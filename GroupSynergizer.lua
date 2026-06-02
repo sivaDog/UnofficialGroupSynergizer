@@ -10,6 +10,10 @@ local function OnAddOnLoaded(event, addonName)
     GROUP_SYNERGIZER.AutoAccept     = GROUP_SYNERGIZER.savedVariables.AutoAccept
     GROUP_SYNERGIZER.NotifyDelay    = GROUP_SYNERGIZER.savedVariables.NotifyDelay
     GROUP_SYNERGIZER.EnhanceGAF     = GROUP_SYNERGIZER.savedVariables.EnhanceGAF
+    GROUP_SYNERGIZER.ShowSetCollectionProgress = GROUP_SYNERGIZER.savedVariables.ShowSetCollectionProgress
+    if GROUP_SYNERGIZER.ShowSetCollectionProgress == nil then
+        GROUP_SYNERGIZER.ShowSetCollectionProgress = GROUP_SYNERGIZER.defaults.ShowSetCollectionProgress
+    end
     GROUP_SYNERGIZER.SlashCommands  = GROUP_SYNERGIZER.savedVariables.SlashCommands
     GROUP_SYNERGIZER.firstRun       = GROUP_SYNERGIZER.savedVariables.firstRun
 

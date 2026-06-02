@@ -18,6 +18,8 @@
     SI_GROUP_SYNERGIZER_SOUND_TT 	= "Plus de son audible lors de la vérification prête",
     SI_GROUP_SYNERGIZER_SCREEN_TT 	= "Meilleure notification d'écran lors du contrôle prêt",
     SI_GROUP_SYNERGIZER_ENHANCE_TT 	= "Afficher les engagements/quêtes quotidiens, accepter automatiquement et vérifier les quêtes actives dans l'outil de recherche de groupes et d'activités",
+    SI_GROUP_SYNERGIZER_SET_COLLECTION = "Progression des collections d'ensembles",
+    SI_GROUP_SYNERGIZER_SET_COLLECTION_TT = "Afficher les pièces de collection débloquées/totales par donjon dans le chercheur d'activités (nécessite LibSets)",
     SI_GROUP_SYNERGIZER_ACCEPT_TT 	= "Accepter automatiquement le contrôle prêt à la recherche d'un groupe",
     SI_GROUP_SYNERGIZER_RELEASE_TT 	= "Libération automatique à la mort sur les champs de bataille",
     SI_GROUP_SYNERGIZER_SLASH_TT 	= "Commandes de barre oblique \nEngagements quotidiens /pl /pledge \nQuitter le groupe /lv /leave",
@@ -43,5 +45,5 @@ GROUP_SYNERGIZER_PLEDGES = {
     PledgeDone	= "Fait",
     PledgeSlash = "ENGAGEMENTS QUOTIDIENS",
     CheckQuests = "Vérifier les quêtes",
-    AutoAccept	= "Accepter Automatiquement"
+    AutoAccept	= "Accepter Automatiquement",
 }

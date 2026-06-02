@@ -18,6 +18,8 @@
     SI_GROUP_SYNERGIZER_SOUND_TT 	= "Более громкий звук при проверке готовности",
     SI_GROUP_SYNERGIZER_SCREEN_TT 	= "Улучшенное уведомление на экране при проверке готовности",
     SI_GROUP_SYNERGIZER_ENHANCE_TT 	= "Показывать ежедневные обещания/задания, автоматическое принятие и проверять активные задания в поиске групп и действий",
+    SI_GROUP_SYNERGIZER_SET_COLLECTION = "Прогресс коллекции сетов",
+    SI_GROUP_SYNERGIZER_SET_COLLECTION_TT = "Показывать разблокированные/всего частей коллекции сетов по подземельям в поиске активностей (нужен LibSets)",
     SI_GROUP_SYNERGIZER_ACCEPT_TT 	= "Авто-Принять 'Поиск группы' Проверка готовности",
     SI_GROUP_SYNERGIZER_RELEASE_TT 	= "Авто-релиз при смерти на поле боя",
     SI_GROUP_SYNERGIZER_SLASH_TT 	= "Команды косой черты \nЕжедневные обещания /pl /pledge \nПокинуть группу /lv /leave",
@@ -43,5 +45,5 @@ GROUP_SYNERGIZER_PLEDGES = {
     PledgeDone	= "Готово",
     PledgeSlash = "ЕЖЕДНЕВНЫЕ ОБЯЗАТЕЛЬСТВА",
     CheckQuests = "Проверить квесты",
-    AutoAccept	= "Авто-Принятие"
+    AutoAccept	= "Авто-Принятие",
 }

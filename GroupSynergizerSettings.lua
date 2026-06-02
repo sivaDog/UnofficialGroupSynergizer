@@ -50,6 +50,29 @@ function GROUP_SYNERGIZER.CreateSettingsWindow()
         },
         {
             type = "checkbox",
+            name = GetString(SI_GROUP_SYNERGIZER_SET_COLLECTION),
+            tooltip = GetString(SI_GROUP_SYNERGIZER_SET_COLLECTION_TT),
+            default = true,
+            disabled = function() return not GROUP_SYNERGIZER.libSetsAvailable end,
+            getFunc = function()
+                if GROUP_SYNERGIZER.savedVariables.ShowSetCollectionProgress == nil then
+                    return GROUP_SYNERGIZER.defaults.ShowSetCollectionProgress
+                end
+                return GROUP_SYNERGIZER.savedVariables.ShowSetCollectionProgress
+            end,
+            setFunc = function(v)
+                GROUP_SYNERGIZER.savedVariables.ShowSetCollectionProgress = v
+                GROUP_SYNERGIZER.ShowSetCollectionProgress = v
+                if GROUP_SYNERGIZER.BuildCollectionCache then
+                    GROUP_SYNERGIZER.BuildCollectionCache()
+                end
+                if GROUP_SYNERGIZER.showSpecificDung and GROUP_SYNERGIZER.DecorateDungeonRows then
+                    GROUP_SYNERGIZER.DecorateDungeonRows()
+                end
+            end,
+        },
+        {
+            type = "checkbox",
             name = GetString(SI_GROUP_SYNERGIZER_ACCEPT),
             tooltip = GetString(SI_GROUP_SYNERGIZER_ACCEPT_TT),
             default = false,
