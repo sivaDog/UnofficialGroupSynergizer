@@ -13,6 +13,18 @@ This fork is **not affiliated with the original author**. Maintenance is by **si
 - Auto-release in battlegrounds (optional)
 - Slash commands: `/pledge`, `/pl`, `/leave`, `/lv`, `/gs`
 
+## Screenshots
+
+Activity Finder (Dungeon Finder) with Group Synergizer enabled:
+
+![Activity Finder with pledge status, set collection progress, and achievement icons](sample.png)
+
+- **Pledge / Quest / Done** — daily pledge and quest completion next to each dungeon
+- **Set collection** — unlocked/total pieces (e.g. `55/72`; green when complete), requires LibSets
+- **Achievement icons** — veteran hard mode, trifecta, and no-death status
+- **Auto-Accept Ready Check** — optional checkbox below the dungeon list
+- **Check Active Quests** — button to verify active pledge quests in your journal
+
 ## Requirements
 
 - [LibAddonMenu-2.0](https://www.esoui.com/downloads/info7-LibAddonMenu-2.0.html) (>= 34)
