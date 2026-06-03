@@ -7,15 +7,19 @@
 ;
 ; This addon contains modified code from 'Bandits User Interface' by Hoft, secretrob
 ; https://www.esoui.com/downloads/info1643-BanditsUserInterface.html
+;
+; Originally created by scorpius2k1
+; https://www.esoui.com/downloads/info2286-GroupSynergizer-EnhancedLFGFeaturesAutoAcceptQueBetterNotifications.html
+; Community-maintained by sivaDog — https://github.com/sivaDog/UnofficialGroupSynergizer
 
-## Title: |cb7ff00Scorps|r Group Synergizer
-## Version: unofficial-5.0
-## Author: |cb7ff00Scorp|r
+## Title: Group Synergizer
+## Version: 5.0.0
+## Author: sivaDog
 ## DependsOn: LibAddonMenu-2.0>=34 LibUndauntedPledges
 ## OptionalDependsOn: LibSets>=9020
 ## APIVersion: 101038 101039
 ## SavedVariables: GroupSynergizerSavedVars
-## Description: Enhanced Group-Based Activities, Notifications, and Features
+## Description: LFG ready-check alerts, daily pledges in Activity Finder, set collection progress, and more. Originally by scorpius2k1; maintained by sivaDog.
 
 lang/en.lua
 lang/$(language).lua

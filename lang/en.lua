@@ -28,7 +28,7 @@
     SI_GROUP_SYNERGIZER_SLASH_WARN	= "UI Reload Required",
 
     SI_GROUP_SYNERGIZER_FEEDBACK	= "Send Feedback",
-    SI_GROUP_SYNERGIZER_FEEDBACK_TT = "Send the addon author a message with any feedback, suggestions, or bug reports"
+    SI_GROUP_SYNERGIZER_FEEDBACK_TT = "Send the maintainer a message with any feedback, suggestions, or bug reports"
 }
 
 for stringId, stringValue in pairs(strings) do

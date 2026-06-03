@@ -4,10 +4,10 @@ function GROUP_SYNERGIZER.CreateSettingsWindow()
     local panelData = {
         type = "panel",
         name = "Group Synergizer",
-        displayName = "Scorps Group Synergizer",
-        author = "Scorp",
+        displayName = "Group Synergizer",
+        author = GROUP_SYNERGIZER.authorDisplay,
         version = GROUP_SYNERGIZER.version,
-        website = "https://www.esoui.com/downloads/info2286-GroupSynergizer-EnhancedLFGFeaturesAutoAcceptQueBetterNotifications.html",
+        website = GROUP_SYNERGIZER.repositoryUrl,
         slashCommand = "/gs",
         registerForRefresh = true,
         registerForDefaults = true,
@@ -108,7 +108,7 @@ function GROUP_SYNERGIZER.CreateSettingsWindow()
         {
             type = "button",
             name = GetString(SI_GROUP_SYNERGIZER_FEEDBACK),
-            func = function() MAIN_MENU_KEYBOARD:ShowScene("mailSend") MAIL_SEND:SetReply("@scorpius2k1", GROUP_SYNERGIZER.name) end,
+            func = function() MAIN_MENU_KEYBOARD:ShowScene("mailSend") MAIL_SEND:SetReply(GROUP_SYNERGIZER.maintainerAccount, GROUP_SYNERGIZER.name) end,
             tooltip = GetString(SI_GROUP_SYNERGIZER_FEEDBACK_TT),
         },
     }

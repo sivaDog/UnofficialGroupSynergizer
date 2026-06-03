@@ -1,6 +1,12 @@
 GROUP_SYNERGIZER 					= {}
 GROUP_SYNERGIZER.name 				= "GroupSynergizer"
-GROUP_SYNERGIZER.version 			= "unofficial-5.0"
+GROUP_SYNERGIZER.version 			= "5.0.0"
+GROUP_SYNERGIZER.originalAuthor		= "scorpius2k1"
+GROUP_SYNERGIZER.maintainer			= "sivaDog"
+GROUP_SYNERGIZER.maintainerAccount	= "@sivaDog"
+GROUP_SYNERGIZER.authorDisplay		= "sivaDog (maintainer), scorpius2k1 (original)"
+GROUP_SYNERGIZER.originalAddonUrl	= "https://www.esoui.com/downloads/info2286-GroupSynergizer-EnhancedLFGFeaturesAutoAcceptQueBetterNotifications.html"
+GROUP_SYNERGIZER.repositoryUrl		= "https://github.com/sivaDog/UnofficialGroupSynergizer"
 GROUP_SYNERGIZER.variableVersion	= 2
 GROUP_SYNERGIZER.savedVariables		= nil
 GROUP_SYNERGIZER.eventManager 		= GetEventManager()
