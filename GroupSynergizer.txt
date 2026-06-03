@@ -10,16 +10,16 @@
 ;
 ; Originally created by scorpius2k1
 ; https://www.esoui.com/downloads/info2286-GroupSynergizer-EnhancedLFGFeaturesAutoAcceptQueBetterNotifications.html
-; Community-maintained by sivaDog — https://github.com/sivaDog/UnofficialGroupSynergizer
+; Personally maintained by FirewoodDoge — https://github.com/sivaDog/UnofficialGroupSynergizer
 
 ## Title: Group Synergizer
 ## Version: 5.0.0
-## Author: sivaDog
+## Author: FirewoodDoge
 ## DependsOn: LibAddonMenu-2.0>=34 LibUndauntedPledges
 ## OptionalDependsOn: LibSets>=9020
 ## APIVersion: 101038 101039
 ## SavedVariables: GroupSynergizerSavedVars
-## Description: LFG ready-check alerts, daily pledges in Activity Finder, set collection progress, and more. Originally by scorpius2k1; maintained by sivaDog.
+## Description: LFG ready-check alerts, daily pledges in Activity Finder, set collection progress, and more. Originally by scorpius2k1; maintained by FirewoodDoge.
 
 lang/en.lua
 lang/$(language).lua

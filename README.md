@@ -1,8 +1,13 @@
-# Group Synergizer (Community Maintenance)
+# Group Synergizer
 
 Community-maintained update of **[Group Synergizer](https://www.esoui.com/downloads/info2286-GroupSynergizer-EnhancedLFGFeaturesAutoAcceptQueBetterNotifications.html)** by **scorpius2k1**.
 
-This fork is **not affiliated with the original author**. Maintenance is by **sivaDog**. We are seeking official maintainer handover on ESOUI for the [original addon page](https://www.esoui.com/downloads/info2286-GroupSynergizer-EnhancedLFGFeaturesAutoAcceptQueBetterNotifications.html).
+This fork is **not affiliated with the original author**. I maintain it for my own use and am seeking official maintainer handover on ESOUI for the [original addon page](https://www.esoui.com/downloads/info2286-GroupSynergizer-EnhancedLFGFeaturesAutoAcceptQueBetterNotifications.html).
+
+| | Name |
+|---|---|
+| ESOUI / in-game | **FirewoodDoge** |
+| GitHub | **[sivaDog](https://github.com/sivaDog)** |
 
 ## Features
 
@@ -48,15 +53,13 @@ Activity Finder (Dungeon Finder) with Group Synergizer enabled:
 ## Credits
 
 - **Original author:** [scorpius2k1](https://www.esoui.com/downloads/author-47149.html) (Group Synergizer 1.0–4.1)
-- **Maintainer:** sivaDog
+- **Maintainer:** FirewoodDoge ([GitHub: sivaDog](https://github.com/sivaDog))
 - **UI helpers:** Modified code from [Bandits User Interface](https://www.esoui.com/downloads/info1643-BanditsUserInterface.html) by Hoft, secretrob
-- **Contributors:** See [git history](https://github.com/sivaDog/UnofficialGroupSynergizer/commits/main)
 
 ## Feedback
 
-- In-game: Settings → Group Synergizer → Send Feedback
 - GitHub: [Issues](https://github.com/sivaDog/UnofficialGroupSynergizer/issues)
 
 ## License
 
-No license file was included with the original addon. This fork respects the original work and ESOUI community guidelines. Do not republish without proper attribution.
+No license file was included with the original addon. This fork respects the original work and ESOUI guidelines. Do not republish without proper attribution.
